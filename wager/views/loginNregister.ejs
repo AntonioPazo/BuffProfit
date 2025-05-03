@@ -1,0 +1,71 @@
+<%- include('partials/header', { title: 'Authentication', username: username }) %>
+
+<div class="auth-container">
+    <div class="auth-tabs">
+        <div class="auth-tab active" role="button" tabindex="0" onclick="switchTab('login')" onkeydown="handleKeyPress(event, 'login')">Login</div>
+        <div class="auth-tab" role="button" tabindex="0" onclick="switchTab('register')" onkeydown="handleKeyPress(event, 'register')">Register</div>
+    </div>
+    
+    <form id="loginForm" class="form active">
+        <div class="form-group">
+            <label for="loginUsername">Username</label>
+            <input type="text" id="loginUsername" required>
+        </div>
+        <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Sign In</button>
+        <div class="auth-footer">
+            <a href="#">Forgot password?</a>
+        </div>
+    </form>
+
+    <form id="registerForm" class="form">
+        <div class="form-group">
+            <label for="registerUsername">Username</label>
+            <input type="text" id="registerUsername" required>
+        </div>
+        <div class="form-group">
+            <label for="registerSummoner">Summoner Name</label>
+            <input type="text" id="registerSummoner" required>
+        </div>
+        <div class="form-group">
+            <label for="registerIdSummoner">LoL ID</label>
+            <input type="text" id="registerIdSummoner" required>
+        </div>
+        <div class="form-group">
+            <label for="registerEmail">Email</label>
+            <input type="email" id="registerEmail" required>
+        </div>
+        <div class="form-group">
+            <label for="registerPassword">Password</label>
+            <input type="password" id="registerPassword" required>
+        </div>
+        <div class="form-group">
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" id="confirmPassword" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Create Account</button>
+    </form>
+</div>
+
+<%- include('partials/footer') %>
+<script src="/auth.js"></script>
+<script>
+    function switchTab(tab) {
+        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+        if (tab === 'login') {
+            document.querySelector('.auth-tab:nth-child(1)').classList.add('active');
+        } else {
+            document.querySelector('.auth-tab:nth-child(2)').classList.add('active');
+        }
+        document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+        document.getElementById(`${tab}Form`).classList.add('active');
+    }
+    function handleKeyPress(event, tab) {
+        if (event.key === "Enter" || event.key === " ") {
+            switchTab(tab);
+        }
+    }
+</script>

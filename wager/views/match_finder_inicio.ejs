@@ -1,0 +1,118 @@
+<%- include('partials/header', { title: 'Matchfinder' }) %>
+
+<div class="main-content">
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">TEAM SIZE</h3>
+            <div class="checkbox-item">
+                <input type="checkbox" id="all"> <label for="all">All</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="solo"> <label for="solo">Solo</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="duo"> <label for="duo">Duo</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="squad"> <label for="squad">Squad</label>
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">CATEGORIES</h3>
+            <div class="checkbox-item">
+                <input type="checkbox" id="general"> <label for="general">General</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="elite"> <label for="elite">Elite</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="free"> <label for="free">Free</label>
+            </div>
+            <div class="checkbox-item">
+                <input type="checkbox" id="guaranteed"> <label for="guaranteed">Guaranteed</label>
+            </div>
+        </div>
+    </div>
+    <div class="content">
+        <div class="top-bar">
+            <h2 class="page-title">UPCOMING TOURNAMENTS</h2>
+            <div class="view-options">
+                <a href="#" class="nav-link">Leaderboards</a>
+                <a href="#" class="nav-link">Grid View</a>
+            </div>
+        </div>
+        <div class="tournament-grid">
+            <div class="tournament-card">
+                <div class="tournament-header">
+                    <img src="/images/league_of_legends-icon.png" alt="Tournament" class="tournament-image">
+                    <div class="prize">$360</div>
+                </div>
+                <div class="tournament-info">
+                    <h3 class="tournament-title">1v1 KILL RACE BEST OF 1</h3>
+                    <p>Feb 21, 7:00 AM EST <span class="start-time">Starts in 3H 59M</span></p>
+                    <div class="tournament-details">
+                        <div>
+                            <div class="detail-label">ENTRY/PLAYER</div>
+                            <div>5 Credits</div>
+                        </div>
+                        <div>
+                            <div class="detail-label">TEAM SIZE</div>
+                            <div>1v1</div>
+                        </div>
+                        <div>
+                            <div class="detail-label">REGIONS</div>
+                            <div>NA + EU</div>
+                        </div>
+                        <div>
+                            <div class="detail-label">SKILL LEVEL</div>
+                            <div>All</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tournament-footer">
+                    <a href="#">View Tournament →</a>
+                </div>
+            </div>
+            <div class="tournament-card">
+                <div class="tournament-header">
+                    <img src="/images/league_of_legends-icon.png" alt="Tournament" class="tournament-image">
+                    <div class="prize">$50</div>
+                </div>
+                <div class="tournament-info">
+                    <h3 class="tournament-title">1v1 KILL RACE BEST OF 1</h3>
+                    <p>Feb 21, 9:00 AM EST <span class="start-time">Starts in 5H 59M</span></p>
+                    <div class="tournament-details">
+                        <div>
+                            <div class="detail-label">ENTRY/PLAYER</div>
+                            <div>5 Credits</div>
+                        </div>
+                        <div>
+                            <div class="detail-label">TEAM SIZE</div>
+                            <div>1v1</div>
+                        </div>
+                        <div>
+                            <div class="detail-label">REGIONS</div>
+                            <div>NA + EU</div>
+                        </div>
+                        <div>
+                            <div class="detail-label">SKILL LEVEL</div>
+                            <div>All</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="tournament-footer">
+                    <a href="#">View Tournament →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/js/client.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.checkbox-item input').change(function() {
+        });
+    });
+</script>
+
+<%- include('partials/footer') %>

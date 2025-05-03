@@ -1,0 +1,71 @@
+<%- include('partials/header', { title: 'League of Legends - Tournaments', username: username }) %>
+
+<div class="hero">
+    <div class="hero-content">
+        <h1>COMMUNITY TOURNAMENTS</h1>
+        <p>BATTLE YOUR WAY THROUGH SUMMONER'S RIFT AND CLAIM VICTORY</p>
+    </div>
+</div>
+<div class="sections">
+    <div class="section-card">
+        <h2>TOURNAMENTS</h2>
+        <p>Compete in ranked tournaments</p>
+    </div>
+    <div class="section-card2">
+        <h2>CASH MATCHES</h2>
+        <p>Play for prizes and glory</p>
+    </div>
+    <div class="section-card">
+        <h2>LEADERBOARDS</h2>
+        <p>Track your progress and rankings</p>
+    </div>
+</div>
+<div class="filters">
+    <button class="filter-btn active">ALL</button>
+    <button class="filter-btn">1v1</button>
+    <button class="filter-btn">2v2</button>
+    <button class="filter-btn">3v3</button>
+    <button class="filter-btn">5v5</button>
+</div>
+<div class="tournament-list">
+    <div class="tournament-item">
+        <div class="tournament-info">
+            <img src="/images/league_of_legends-icon.png" alt="Tournament" class="tournament-image">
+            <div>
+                <h3>20.00€</h3>
+                <p>5v5 Ranked - Best of 3</p>
+            </div>
+            <div>
+                <p>Skill Level: Gold+</p>
+            </div>
+        </div>
+        <button class="btn btn-primary">Join Tournament</button>
+    </div>
+    <div class="tournament-item">
+        <div class="tournament-info">
+            <img src="/images/league_of_legends-icon.png" alt="Tournament" class="tournament-image">
+            <div>
+                <h3>15.00€</h3>
+                <p>5v5 Ranked - Best of 3</p>
+            </div>
+            <div>
+                <p>Skill Level: Silver+</p>
+            </div>
+        </div>
+        <button class="btn btn-primary">Join Tournament</button>
+    </div>
+</div>
+<script src="/js/client.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.filter-btn').click(function() {
+            $('.filter-btn').removeClass('active');
+            $(this).addClass('active');
+        });
+        $('.btn-primary').click(function() {
+            alert('Tournament joined successfully!');
+        });
+    });
+</script>
+
+<%- include('partials/footer') %>
