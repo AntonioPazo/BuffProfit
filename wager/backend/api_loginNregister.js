@@ -1,4 +1,4 @@
-// lógica de autenticación
+// Este archivo debería contener la lógica de autenticación
 const express = require("express")
 const bcrypt = require("bcrypt")
 const uuid = require("uuid")
@@ -50,7 +50,7 @@ router.post("/procesar_login", async (req, res) => {
           token: token,
           userId: user.id_user,
           username: user.username,
-          caducidad: Date.now() + 7 * 86400000,
+          caducidad: Date.now() + 7 * 86400000, // 7 días
         }
 
         console.log("Sesión creada:", token)
@@ -95,5 +95,5 @@ router.post("/procesar_registro", async (req, res) => {
   }
 })
 
+// Exportar solo el router
 module.exports = router
-

@@ -1,11 +1,18 @@
-<%- include('partials/header', { title: 'Matchfinder' }) %>
+<%- include('partials/header', { title: 'Matchfinder', username: username }) %>
 
 <div class="main-content">
     <div class="sidebar">
         <div class="sidebar-section">
+            <h3 class="sidebar-title">TUS CRÉDITOS</h3>
+            <div class="user-credits">
+                <span class="credits-amount"><%= userCreditos.toFixed(2) %></span>
+                <span class="credits-label">Créditos</span>
+            </div>
+        </div>
+        <div class="sidebar-section">
             <h3 class="sidebar-title">TEAM SIZE</h3>
             <div class="checkbox-item">
-                <input type="checkbox" id="all"> <label for="all">All</label>
+                <input type="checkbox" id="all" checked> <label for="all">All</label>
             </div>
             <div class="checkbox-item">
                 <input type="checkbox" id="solo"> <label for="solo">Solo</label>
@@ -20,7 +27,7 @@
         <div class="sidebar-section">
             <h3 class="sidebar-title">CATEGORIES</h3>
             <div class="checkbox-item">
-                <input type="checkbox" id="general"> <label for="general">General</label>
+                <input type="checkbox" id="general" checked> <label for="general">General</label>
             </div>
             <div class="checkbox-item">
                 <input type="checkbox" id="elite"> <label for="elite">Elite</label>
@@ -34,7 +41,178 @@
         </div>
     </div>
     <div class="content">
-        <div class="top-bar">
+        <% if (message) { %>
+            <div class="alert alert-success">
+                <%= message %>
+            </div>
+        <% } %>
+        
+        <% if (error) { %>
+            <div class="alert alert-error">
+                <% if (error === 'cannot-join-own-match') { %>
+                    No puedes unirte a tu propia partida.
+                <% } else if (error === 'match-unavailable') { %>
+                    Esta partida ya no está disponible.
+                <% } else if (error === 'user-not-found') { %>
+                    Usuario no encontrado.
+                <% } else if (error === 'match-not-found') { %>
+                    Partida no encontrada.
+                <% } else if (error === 'not-in-match') { %>
+                    No eres parte de esta partida.
+                <% } else if (error === 'server-error') { %>
+                    Error del servidor. Inténtalo de nuevo más tarde.
+                <% } else if (error === 'insufficient-credits') { %>
+                    No tienes suficientes créditos para unirte a esta partida.
+                <% } else { %>
+                    <%= error %>
+                <% } %>
+            </div>
+        <% } %>
+        
+        <!-- Sección de Partidas Activas -->
+        <% if (activeMatches && activeMatches.length > 0) { %>
+            <div class="top-bar">
+                <h2 class="page-title">TUS PARTIDAS ACTIVAS</h2>
+                <div class="view-options">
+                    <a href="/create-match" class="create-match-btn">CREATE MATCH</a>
+                </div>
+            </div>
+            
+            <div class="match-grid">
+                <% activeMatches.forEach(match => { %>
+                    <div class="match-card active-match">
+                        <div class="match-header">
+                            <img src="/images/league_of_legends-icon.png" alt="Match" class="match-image">
+                            <div class="prize"><%= match.creditos %> Credits</div>
+                        </div>
+                        <div class="match-info">
+                            <h3 class="match-title"><%= match.mode %> - <%= match.map %></h3>
+                            <p><%= new Date(match.created_at).toLocaleDateString() %> <span class="match-format"><%= match.format %></span></p>
+                            <div class="match-details">
+                                <div>
+                                    <div class="detail-label">BLUE PLAYER</div>
+                                    <div><%= match.blue_username %></div>
+                                </div>
+                                <div>
+                                    <div class="detail-label">RED PLAYER</div>
+                                    <div><%= match.red_username %></div>
+                                </div>
+                                <div>
+                                    <div class="detail-label">REGION</div>
+                                    <div><%= match.region.toUpperCase() %></div>
+                                </div>
+                                <div>
+                                    <div class="detail-label">SKILL LEVEL</div>
+                                    <div><%= match.skill_level %></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="match-footer">
+                            <a href="/match-result/<%= match.id_game %>">Report Result →</a>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        <% } %>
+        
+        <!-- Sección de Partidas Completadas -->
+        <% if (completedMatches && completedMatches.length > 0) { %>
+            <div class="top-bar" style="<%= activeMatches && activeMatches.length > 0 ? 'margin-top: 40px;' : '' %>">
+                <h2 class="page-title">TUS PARTIDAS RECIENTES</h2>
+            </div>
+            
+            <div class="match-grid">
+                <% completedMatches.forEach(match => { %>
+                    <div class="match-card completed-match">
+                        <div class="match-header">
+                            <img src="/images/league_of_legends-icon.png" alt="Match" class="match-image">
+                            <div class="prize"><%= match.creditos %> Credits</div>
+                        </div>
+                        <div class="match-info">
+                            <h3 class="match-title"><%= match.mode %> - <%= match.map %></h3>
+                            <p><%= new Date(match.created_at).toLocaleDateString() %> <span class="match-format"><%= match.format %></span></p>
+                            <div class="match-details">
+                                <div>
+                                    <div class="detail-label">BLUE PLAYER</div>
+                                    <div><%= match.blue_username %></div>
+                                </div>
+                                <div>
+                                    <div class="detail-label">RED PLAYER</div>
+                                    <div><%= match.red_username %></div>
+                                </div>
+                                <div>
+                                    <div class="detail-label">WINNER</div>
+                                    <div>
+                                        <% if (match.winner === match.id_summoner_blue) { %>
+                                            <%= match.blue_username %> (Blue)
+                                        <% } else { %>
+                                            <%= match.red_username %> (Red)
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="match-footer">
+                            <a href="/match-result/<%= match.id_game %>">View Details →</a>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        <% } %>
+        
+        <!-- Sección de Partidas Disponibles -->
+        <div class="top-bar" style="<%= (activeMatches && activeMatches.length > 0) || (completedMatches && completedMatches.length > 0) ? 'margin-top: 40px;' : '' %>">
+            <h2 class="page-title">PARTIDAS DISPONIBLES</h2>
+            <div class="view-options">
+                <a href="/create-match" class="create-match-btn">CREATE MATCH</a>
+            </div>
+        </div>
+        
+        <div class="match-grid">
+            <% if (matches && matches.length > 0) { %>
+                <% matches.forEach(match => { %>
+                    <div class="match-card">
+                        <div class="match-header">
+                            <img src="/images/league_of_legends-icon.png" alt="Match" class="match-image">
+                            <div class="prize"><%= match.creditos %> Credits</div>
+                        </div>
+                        <div class="match-info">
+                            <h3 class="match-title"><%= match.mode %> - <%= match.map %></h3>
+                            <p><%= new Date(match.created_at).toLocaleDateString() %> <span class="match-format"><%= match.format %></span></p>
+                            <div class="match-details">
+                                <div>
+                                    <div class="detail-label">ENTRY/PLAYER</div>
+                                    <div><%= match.creditos %> Credits</div>
+                                </div>
+                                <div>
+                                    <div class="detail-label">TEAM SIZE</div>
+                                    <div><%= match.mode %></div>
+                                </div>
+                                <div>
+                                    <div class="detail-label">REGION</div>
+                                    <div><%= match.region.toUpperCase() %></div>
+                                </div>
+                                <div>
+                                    <div class="detail-label">SKILL LEVEL</div>
+                                    <div><%= match.skill_level %></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="match-footer">
+                            <a href="/join-match/<%= match.id_game %>">Join Match →</a>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="no-matches">
+                    <p>No hay partidas disponibles en este momento.</p>
+                    <p>¡Sé el primero en crear una partida!</p>
+                </div>
+            <% } %>
+        </div>
+        
+        <!-- Sección de Torneos -->
+        <div class="top-bar" style="margin-top: 40px;">
             <h2 class="page-title">UPCOMING TOURNAMENTS</h2>
             <div class="view-options">
                 <a href="#" class="nav-link">Leaderboards</a>
@@ -107,6 +285,36 @@
         </div>
     </div>
 </div>
+
+<style>
+/* Estilos para la sección de créditos del usuario */
+.user-credits {
+    background-color: #2a2a2a;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.credits-amount {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #8a2be2;
+    margin-bottom: 5px;
+}
+
+.credits-label {
+    color: #ccc;
+    font-size: 0.9rem;
+}
+
+/* Estilos para partidas completadas */
+.match-card.completed-match {
+    border: 1px solid #444;
+}
+</style>
+
 <script src="/js/client.js"></script>
 <script>
     $(document).ready(function() {

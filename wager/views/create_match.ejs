@@ -1,0 +1,226 @@
+<%- include('partials/header', { title: 'Create Match', username: username }) %>
+
+<div class="main-content">
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">TUS CRÉDITOS</h3>
+            <div class="user-credits">
+                <span class="credits-amount"><%= userCreditos.toFixed(2) %></span>
+                <span class="credits-label">Créditos</span>
+            </div>
+        </div>
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">MATCH INFO</h3>
+            <p>Create your own match and invite other players to compete!</p>
+            <p>Set up the match parameters according to your preferences.</p>
+            <p>Once created, your match will be visible to other players in the matchfinder.</p>
+        </div>
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">RULES</h3>
+            <ul class="rules-list">
+                <li>Be respectful to all participants</li>
+                <li>Start matches on time</li>
+                <li>Report results accurately</li>
+                <li>Follow League of Legends terms of service</li>
+            </ul>
+        </div>
+    </div>
+    <div class="content">
+        <div class="top-bar">
+            <h2 class="page-title">CREATE NEW MATCH</h2>
+            <div class="view-options">
+                <a href="/matchfinder" class="nav-link">← Back to Matchfinder</a>
+            </div>
+        </div>
+        <div class="create-match-form">
+            <form id="createMatchForm" action="/process-create-match" method="POST">
+                <div class="form-section">
+                    <h3>Match Format</h3>
+                    <div class="form-group">
+                        <label for="mode">Team Size:</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="1vs1" name="mode" value="1vs1" checked>
+                                <label for="1vs1">1vs1</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="2vs2" name="mode" value="2vs2">
+                                <label for="2vs2">2vs2</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="3vs3" name="mode" value="3vs3">
+                                <label for="3vs3">3vs3</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="5vs5" name="mode" value="5vs5">
+                                <label for="5vs5">5vs5</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="map">Map:</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="grieta" name="map" value="Grieta del Invocador" checked>
+                                <label for="grieta">Grieta del Invocador</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="aram" name="map" value="ARAM">
+                                <label for="aram">ARAM</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="format">Match Format:</label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" id="partida-completa" name="format" value="Partida completa" checked>
+                                <label for="partida-completa">Partida completa</label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" id="mejor-de-3" name="format" value="Mejor de 3">
+                                <label for="mejor-de-3">Mejor de 3</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>Match Details</h3>
+                    <div class="form-group">
+                        <label for="idGameLol">Game ID (Riot Game ID):</label>
+                        <input type="text" id="idGameLol" name="idGameLol" placeholder="Enter the Riot Game ID" required>
+                        <small class="form-text">You can find this ID after creating a custom game in League of Legends</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="creditos">Entry Fee (Credits):</label>
+                        <input type="number" id="creditos" name="creditos" min="0" step="0.01" value="5" max="<%= userCreditos %>">
+                        <small class="form-text">Maximum: <%= userCreditos.toFixed(2) %> credits</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="region">Region:</label>
+                        <select id="region" name="region">
+                            <option value="euw">EUW</option>
+                            <option value="eune">EUNE</option>
+                            <option value="na" selected>NA</option>
+                            <option value="kr">KR</option>
+                            <option value="japan">Japan</option>
+                            <option value="br">BR</option>
+                            <option value="lan">LAN</option>
+                            <option value="las">LAS</option>
+                            <option value="oce">OCE</option>
+                            <option value="ru">RU</option>
+                            <option value="tr">TR</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="skill_level">Skill Level:</label>
+                        <select id="skill_level" name="skill_level">
+                            <option value="Unranked">Unranked</option>
+                            <option value="Iron">Iron</option>
+                            <option value="Bronze">Bronze</option>
+                            <option value="Silver">Silver</option>
+                            <option value="Gold" selected>Gold</option>
+                            <option value="Platinum">Platinum</option>
+                            <option value="Emerald">Emerald</option>
+                            <option value="Diamond">Diamond</option>
+                            <option value="Master">Master</option>
+                            <option value="Grand Master">Grand Master</option>
+                            <option value="Challenger">Challenger</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="matchDate">Match Date:</label>
+                        <input type="date" id="matchDate" name="matchDate" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="matchTime">Match Time:</label>
+                        <input type="time" id="matchTime" name="matchTime" required>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Create Match</button>
+                    <button type="button" class="btn btn-outline" onclick="window.location.href='/matchfinder'">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Estilos para la sección de créditos del usuario */
+.user-credits {
+    background-color: #2a2a2a;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.credits-amount {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #8a2be2;
+    margin-bottom: 5px;
+}
+
+.credits-label {
+    color: #ccc;
+    font-size: 0.9rem;
+}
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default date to today
+        const today = new Date();
+        const formattedDate = today.toISOString().substr(0, 10);
+        document.getElementById('matchDate').value = formattedDate;
+        
+        // Form submission
+        document.getElementById('createMatchForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            // Recopilar datos del formulario
+            const formData = new FormData(this);
+            const formDataObj = {};
+            formData.forEach((value, key) => {
+                formDataObj[key] = value;
+            });
+            
+            try {
+                const response = await fetch('/process-create-match', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formDataObj),
+                    credentials: 'include'
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && !data.err) {
+                    alert('Match created successfully!');
+                    window.location.href = '/matchfinder';
+                } else {
+                    alert('Error creating match: ' + (data.errmsg || 'Unknown error'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error connecting to server');
+            }
+        });
+    });
+</script>
+
+<%- include('partials/footer') %>

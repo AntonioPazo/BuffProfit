@@ -34,20 +34,5 @@ document.addEventListener("DOMContentLoaded", () => {
     function loadUserData(token) {
         console.log("Cargando datos del usuario con token:", token);
 
-        /*
-        fetch('/api/user-data', {
-          headers: {
-            'Authorization': token
-          }
-        })
-        .then(response => response.json())
-        .then(data => {
-          console.log('Datos del usuario:', data);
-          // Actualizar la interfaz con los datos del usuario
-        })
-        .catch(error => {
-          console.error('Error al cargar datos del usuario:', error);
-        });
-        */
     }
 });

@@ -28,6 +28,7 @@ const config = {
     connection.release()
     console.log("Prueba de conexión exitosa:", rows)
 
+    // Verificar la estructura de la tabla user
     try {
       const connection = await pool.getConnection()
       const [columns] = await connection.execute("DESCRIBE user")
@@ -53,7 +54,7 @@ app.set("views", path.join(__dirname, "views"))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(express.static(path.join(__dirname, "public")))
-app.use(cookieParser())
+app.use(cookieParser()) // Middleware para manejar cookies
 
 // Middleware para logging de solicitudes
 app.use((req, res, next) => {
