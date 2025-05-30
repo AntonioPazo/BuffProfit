@@ -29,10 +29,30 @@ document.addEventListener("DOMContentLoaded", () => {
 
     console.log("Matchfinder inicializado correctamente con token:", token);
 
+    // Aquí puedes agregar la lógica específica de la página matchfinder
+
+    // Ejemplo: cargar datos del usuario
     loadUserData(token);
 
     function loadUserData(token) {
+        // Esta función podría hacer una solicitud al servidor para obtener datos del usuario
         console.log("Cargando datos del usuario con token:", token);
 
+        // Ejemplo de cómo hacer una solicitud autenticada
+        /*
+        fetch('/api/user-data', {
+          headers: {
+            'Authorization': token
+          }
+        })
+        .then(response => response.json())
+        .then(data => {
+          console.log('Datos del usuario:', data);
+          // Actualizar la interfaz con los datos del usuario
+        })
+        .catch(error => {
+          console.error('Error al cargar datos del usuario:', error);
+        });
+        */
     }
 });

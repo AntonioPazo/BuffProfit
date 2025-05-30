@@ -1,0 +1,669 @@
+<%- include('partials/header', { title: 'Tournament Details', username: username }) %>
+
+<div class="main-content">
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">DETALLES DEL TORNEO</h3>
+            <div class="tournament-sidebar-info">
+                <% if (tournament.image_path) { %>
+                    <img src="<%= tournament.image_path %>" alt="<%= tournament.name %>" class="tournament-logo">
+                <% } else { %>
+                    <img src="/images/league_of_legends-icon.png" alt="Tournament" class="tournament-logo">
+                <% } %>
+                <div class="tournament-prize-large"><%= tournament.prize_pool %> Credits</div>
+                <div class="tournament-date">
+                    <i class="fas fa-calendar"></i> <%= new Date(tournament.start_date).toLocaleDateString() %>
+                </div>
+                <div class="tournament-time">
+                    <i class="fas fa-clock"></i> <%= new Date(tournament.start_date).toLocaleTimeString() %>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">FORMATO</h3>
+            <div class="tournament-format-info">
+                <div class="format-item">
+                    <div class="format-label">Tamaño de Equipo:</div>
+                    <div class="format-value"><%= tournament.team_size %></div>
+                </div>
+                <div class="format-item">
+                    <div class="format-label">Formato:</div>
+                    <div class="format-value"><%= tournament.format %></div>
+                </div>
+                <div class="format-item">
+                    <div class="format-label">Mapa:</div>
+                    <div class="format-value"><%= tournament.map %></div>
+                </div>
+                <div class="format-item">
+                    <div class="format-label">Región:</div>
+                    <div class="format-value"><%= tournament.region.toUpperCase() %></div>
+                </div>
+                <div class="format-item">
+                    <div class="format-label">Nivel de Habilidad:</div>
+                    <div class="format-value"><%= tournament.skill_level %></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">PARTICIPACIÓN</h3>
+            <div class="tournament-participation-info">
+                <div class="participation-item">
+                    <div class="participation-label">Costo de Entrada:</div>
+                    <div class="participation-value"><%= tournament.entry_fee %> Credits</div>
+                </div>
+                <div class="participation-item">
+                    <div class="participation-label">Participantes:</div>
+                    <div class="participation-value"><%= tournament.current_participants %>/<%= tournament.max_participants %></div>
+                </div>
+                <div class="participation-progress">
+                    <div class="progress-bar" style="width: <%= (tournament.current_participants / tournament.max_participants) * 100 %>%"></div>
+                </div>
+                
+                <% if (userTeams && userTeams.length > 0) { %>
+                    <% if (userTeamRegistered) { %>
+                        <div class="already-registered">
+                            <p>Ya estás inscrito en este torneo con tu equipo.</p>
+                        </div>
+                    <% } else { %>
+                        <button id="joinTournamentBtn" class="btn btn-primary btn-block">Inscribir Equipo</button>
+                    <% } %>
+                <% } else { %>
+                    <div class="no-teams-warning">
+                        <p>Necesitas un equipo para participar.</p>
+                        <a href="/tournament" class="btn btn-outline btn-block">Crear Equipo</a>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    
+    <div class="content">
+        <% if (message) { %>
+            <div class="alert alert-success">
+                <%= message %>
+            </div>
+        <% } %>
+        
+        <% if (error) { %>
+            <div class="alert alert-error">
+                <%= error %>
+            </div>
+        <% } %>
+        
+        <div class="top-bar">
+            <h2 class="page-title"><%= tournament.name %></h2>
+            <div class="view-options">
+                <a href="/tournament" class="nav-link">← Volver a Torneos</a>
+            </div>
+        </div>
+        
+        <div class="tournament-content">
+            <div class="tournament-description">
+                <h3>Descripción</h3>
+                <p><%= tournament.description || 'Este torneo no tiene descripción.' %></p>
+            </div>
+            
+            <div class="tournament-participants-section">
+                <h3>Equipos Participantes (<%= participants.length %>/<%= tournament.max_participants %>)</h3>
+                <% if (participants.length > 0) { %>
+                    <div class="participants-list">
+                        <% participants.forEach((participant, index) => { %>
+                            <div class="participant-card">
+                                <div class="participant-number"><%= index + 1 %></div>
+                                <div class="participant-info">
+                                    <% if (participant.logo_path) { %>
+                                        <img src="<%= participant.logo_path %>" alt="<%= participant.team_name %>" class="team-logo-small">
+                                    <% } else { %>
+                                        <div class="team-logo-placeholder-small"><%= participant.team_tag %></div>
+                                    <% } %>
+                                    <div class="participant-details">
+                                        <div class="participant-name"><%= participant.team_name %></div>
+                                        <div class="participant-tag">[<%= participant.team_tag %>]</div>
+                                    </div>
+                                </div>
+                                <div class="participant-joined">
+                                    Inscrito: <%= new Date(participant.registration_date).toLocaleDateString() %>
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+                <% } else { %>
+                    <div class="no-participants">
+                        <p>Aún no hay equipos inscritos en este torneo.</p>
+                        <p>¡Sé el primero en inscribirte!</p>
+                    </div>
+                <% } %>
+            </div>
+            
+            <div class="tournament-bracket-section">
+                <h3>Bracket</h3>
+                <div class="tournament-bracket">
+                    <p>El bracket se generará automáticamente cuando comience el torneo.</p>
+                </div>
+            </div>
+            
+            <div class="tournament-rules-section">
+                <h3>Reglas</h3>
+                <div class="tournament-rules">
+                    <h4>Reglas Generales</h4>
+                    <ul>
+                        <li>Todos los participantes deben estar registrados en la plataforma.</li>
+                        <li>Los equipos deben estar completos según el formato del torneo.</li>
+                        <li>Los jugadores deben estar disponibles durante toda la duración del torneo.</li>
+                        <li>El incumplimiento de las reglas puede resultar en descalificación.</li>
+                    </ul>
+                    
+                    <h4>Formato de Partidas</h4>
+                    <ul>
+                        <li>Todas las partidas serán al mejor de 1 (Bo1) hasta semifinales.</li>
+                        <li>Semifinales y final serán al mejor de 3 (Bo3).</li>
+                        <li>El mapa será <%= tournament.map %>.</li>
+                        <li>El equipo con mejor seed elegirá lado en la primera partida.</li>
+                    </ul>
+                    
+                    <h4>Reportes y Disputas</h4>
+                    <ul>
+                        <li>Los resultados deben ser reportados por ambos equipos.</li>
+                        <li>En caso de disputa, se requerirán capturas de pantalla como evidencia.</li>
+                        <li>La decisión final sobre disputas será tomada por los administradores del torneo.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para inscribir equipo en torneo -->
+<div id="joinTournamentModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Inscribir Equipo en Torneo</h3>
+            <span class="close">&times;</span>
+        </div>
+        <div class="modal-body">
+            <form id="joinTournamentForm" action="/join-tournament" method="POST">
+                <input type="hidden" name="tournament_id" value="<%= tournament.id_tournament %>">
+                
+                <div class="form-group">
+                    <label for="team_id">Selecciona tu Equipo:</label>
+                    <select id="team_id" name="team_id" required>
+                        <% if (userTeams && userTeams.length > 0) { %>
+                            <% userTeams.forEach(team => { %>
+                                <option value="<%= team.id_team %>"><%= team.name %> (<%= team.tag %>)</option>
+                            <% }); %>
+                        <% } %>
+                    </select>
+                </div>
+                
+                <div class="tournament-fee-info">
+                    <p>Costo de inscripción: <%= tournament.entry_fee %> créditos</p>
+                </div>
+                
+                <div class="form-group">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="terms_agreement" name="terms_agreement" required>
+                        <label for="terms_agreement">Acepto las reglas del torneo y me comprometo a participar en las fechas establecidas.</label>
+                    </div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Inscribir Equipo</button>
+                    <button type="button" class="btn btn-outline close-modal">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Estilos para la página de detalles del torneo */
+.tournament-sidebar-info {
+    text-align: center;
+    padding: 15px;
+}
+
+.tournament-logo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    object-fit: cover;
+}
+
+.tournament-prize-large {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #8a2be2;
+    margin-bottom: 10px;
+}
+
+.tournament-date, .tournament-time {
+    color: #ccc;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.tournament-format-info, .tournament-participation-info {
+    margin-top: 10px;
+}
+
+.format-item, .participation-item {
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.format-label, .participation-label {
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.format-value, .participation-value {
+    color: #ccc;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.participation-progress {
+    height: 6px;
+    background-color: #2a2a2a;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 15px;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #8a2be2;
+    border-radius: 3px;
+}
+
+.already-registered {
+    text-align: center;
+    padding: 10px;
+    background-color: rgba(0, 128, 0, 0.2);
+    border-radius: 4px;
+    margin-top: 15px;
+}
+
+.already-registered p {
+    color: #ccc;
+    margin: 0;
+}
+
+.no-teams-warning {
+    text-align: center;
+    padding: 10px;
+    background-color: rgba(255, 165, 0, 0.2);
+    border-radius: 4px;
+    margin-top: 15px;
+}
+
+.no-teams-warning p {
+    color: #ccc;
+    margin-bottom: 10px;
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+}
+
+.tournament-content {
+    margin-top: 20px;
+}
+
+.tournament-description {
+    background-color: #1a1a1a;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+}
+
+.tournament-description h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #fff;
+}
+
+.tournament-description p {
+    color: #ccc;
+    line-height: 1.6;
+}
+
+.tournament-participants-section, .tournament-bracket-section, .tournament-rules-section {
+    margin-bottom: 30px;
+}
+
+.tournament-participants-section h3, .tournament-bracket-section h3, .tournament-rules-section h3 {
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+.participants-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+}
+
+.participant-card {
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.participant-number {
+    width: 30px;
+    height: 30px;
+    background-color: #2a2a2a;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ccc;
+    font-weight: 600;
+    margin-right: 15px;
+}
+
+.participant-info {
+    display: flex;
+    align-items: center;
+    flex-grow: 1;
+}
+
+.team-logo-small, .team-logo-placeholder-small {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.team-logo-small {
+    object-fit: cover;
+}
+
+.team-logo-placeholder-small {
+    background-color: #8a2be2;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+}
+
+.participant-details {
+    flex-grow: 1;
+}
+
+.participant-name {
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 3px;
+}
+
+.participant-tag {
+    color: #8a2be2;
+    font-size: 0.8rem;
+}
+
+.participant-joined {
+    color: #888;
+    font-size: 0.8rem;
+    text-align: right;
+}
+
+.no-participants {
+    background-color: #1a1a1a;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.no-participants p {
+    color: #ccc;
+    margin: 5px 0;
+}
+
+.tournament-bracket {
+    background-color: #1a1a1a;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.tournament-bracket p {
+    color: #ccc;
+}
+
+.tournament-rules {
+    background-color: #1a1a1a;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.tournament-rules h4 {
+    color: #8a2be2;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.tournament-rules ul {
+    color: #ccc;
+    padding-left: 20px;
+    margin-bottom: 20px;
+}
+
+.tournament-rules ul li {
+    margin-bottom: 5px;
+}
+
+.tournament-rules ul li:last-child {
+    margin-bottom: 0;
+}
+
+/* Estilos para el modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.modal-content {
+    background-color: #1a1a1a;
+    margin: 5% auto;
+    padding: 0;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 600px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    animation: modalFadeIn 0.3s;
+}
+
+@keyframes modalFadeIn {
+    from {opacity: 0; transform: translateY(-20px);}
+    to {opacity: 1; transform: translateY(0);}
+}
+
+.modal-header {
+    padding: 15px 20px;
+    background-color: #2a2a2a;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h3 {
+    margin: 0;
+    color: #fff;
+}
+
+.close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover {
+    color: #fff;
+}
+
+.modal-body {
+    padding: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #ccc;
+}
+
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #2a2a2a;
+    border: 1px solid #333;
+    color: #fff;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: flex-start;
+}
+
+.checkbox-item input[type="checkbox"] {
+    margin-right: 10px;
+    margin-top: 3px;
+}
+
+.tournament-fee-info {
+    background-color: #2a2a2a;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.tournament-fee-info p {
+    margin: 5px 0;
+    color: #ccc;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn {
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    border: none;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: #8a2be2;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #9b4ddb;
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 1px solid #8a2be2;
+    color: #8a2be2;
+}
+
+.btn-outline:hover {
+    background-color: rgba(138, 43, 226, 0.1);
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.alert-success {
+    background-color: rgba(0, 128, 0, 0.2);
+    border-left: 4px solid green;
+    color: #ccc;
+}
+
+.alert-error {
+    background-color: rgba(255, 0, 0, 0.2);
+    border-left: 4px solid red;
+    color: #ccc;
+}
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Modal de inscribir equipo en torneo
+        const joinTournamentModal = document.getElementById('joinTournamentModal');
+        const joinTournamentBtn = document.getElementById('joinTournamentBtn');
+        
+        if (joinTournamentBtn) {
+            const closeJoinTournamentBtn = joinTournamentModal.querySelector('.close');
+            const closeJoinTournamentBtnOutline = joinTournamentModal.querySelector('.close-modal');
+            
+            function openJoinTournamentModal() {
+                joinTournamentModal.style.display = 'block';
+            }
+            
+            function closeJoinTournamentModal() {
+                joinTournamentModal.style.display = 'none';
+            }
+            
+            joinTournamentBtn.addEventListener('click', openJoinTournamentModal);
+            closeJoinTournamentBtn.addEventListener('click', closeJoinTournamentModal);
+            closeJoinTournamentBtnOutline.addEventListener('click', closeJoinTournamentModal);
+            
+            // Cerrar modal al hacer clic fuera del contenido
+            window.addEventListener('click', function(event) {
+                if (event.target == joinTournamentModal) {
+                    closeJoinTournamentModal();
+                }
+            });
+            
+            // Validación del formulario de inscripción a torneo
+            const joinTournamentForm = document.getElementById('joinTournamentForm');
+            joinTournamentForm.addEventListener('submit', function(e) {
+                const termsAgreement = document.getElementById('terms_agreement').checked;
+                
+                if (!termsAgreement) {
+                    e.preventDefault();
+                    alert('Debes aceptar las reglas del torneo para inscribirte.');
+                    return;
+                }
+            });
+        }
+    });
+</script>
+
+<%- include('partials/footer') %>

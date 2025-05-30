@@ -1,0 +1,347 @@
+<%- include('partials/header', { title: 'Notificaciones', username: username }) %>
+
+<div class="main-content">
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">NOTIFICACIONES</h3>
+            <div class="notification-filters">
+                <button class="filter-btn active" data-filter="all">Todas</button>
+                <button class="filter-btn" data-filter="unread">No leídas</button>
+                <button class="filter-btn" data-filter="team_invitation">Invitaciones</button>
+                <button class="filter-btn" data-filter="tournament">Torneos</button>
+                <button class="filter-btn" data-filter="match">Partidas</button>
+            </div>
+        </div>
+        
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">ACCIONES</h3>
+            <div class="notification-actions">
+                <button id="markAllReadBtn" class="action-btn">Marcar todas como leídas</button>
+                <button id="deleteAllBtn" class="action-btn danger">Eliminar todas</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="content">
+        <% if (typeof message !== 'undefined' && message) { %>
+            <div class="alert alert-success">
+                <%= message %>
+            </div>
+        <% } %>
+        
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error">
+                <%= error %>
+            </div>
+        <% } %>
+        
+        <div class="top-bar">
+            <h2 class="page-title">MIS NOTIFICACIONES</h2>
+            <div class="view-options">
+                <a href="/dashboard" class="nav-link">← Volver al Dashboard</a>
+            </div>
+        </div>
+        
+        <div class="notifications-container">
+            <% if (notifications && notifications.length > 0) { %>
+                <% notifications.forEach(notification => { %>
+                    <div class="notification-card <%= !notification.is_read ? 'unread' : '' %>" data-type="<%= notification.type %>">
+                        <div class="notification-icon">
+                            <% if (notification.type === 'team_invitation') { %>
+                                <i class="fas fa-user-plus"></i>
+                            <% } else if (notification.type.includes('tournament')) { %>
+                                <i class="fas fa-trophy"></i>
+                            <% } else if (notification.type.includes('match')) { %>
+                                <i class="fas fa-gamepad"></i>
+                            <% } else { %>
+                                <i class="fas fa-bell"></i>
+                            <% } %>
+                        </div>
+                        <div class="notification-content">
+                            <div class="notification-message"><%= notification.message %></div>
+                            <div class="notification-date"><%= new Date(notification.created_at).toLocaleString() %></div>
+                        </div>
+                        <div class="notification-actions">
+                            <% if (notification.type === 'team_invitation' && notification.status === 'pending') { %>
+                                <form action="/accept-invitation" method="POST" class="inline-form">
+                                    <input type="hidden" name="invitation_id" value="<%= notification.related_id %>">
+                                    <button type="submit" class="btn-small btn-accept">Aceptar</button>
+                                </form>
+                                <form action="/reject-invitation" method="POST" class="inline-form">
+                                    <input type="hidden" name="invitation_id" value="<%= notification.related_id %>">
+                                    <button type="submit" class="btn-small btn-reject">Rechazar</button>
+                                </form>
+                            <% } %>
+                            <form action="/mark-notification-read" method="POST" class="inline-form">
+                                <input type="hidden" name="notification_id" value="<%= notification.id_notification %>">
+                                <button type="submit" class="btn-icon mark-read" title="Marcar como leída">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                            </form>
+                            <form action="/delete-notification" method="POST" class="inline-form">
+                                <input type="hidden" name="notification_id" value="<%= notification.id_notification %>">
+                                <button type="submit" class="btn-icon delete-notification" title="Eliminar notificación">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="no-notifications">
+                    <p>No tienes notificaciones.</p>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Estilos para la página de notificaciones */
+.notification-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.filter-btn {
+    padding: 8px 12px;
+    border-radius: 4px;
+    background-color: #2a2a2a;
+    color: #ccc;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.2s ease;
+}
+
+.filter-btn:hover {
+    background-color: #3a3a3a;
+}
+
+.filter-btn.active {
+    background-color: #8a2be2;
+    color: white;
+}
+
+.notification-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.action-btn {
+    padding: 10px;
+    border-radius: 4px;
+    background-color: #2a2a2a;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.action-btn:hover {
+    background-color: #3a3a3a;
+}
+
+.action-btn.danger {
+    background-color: rgba(255, 0, 0, 0.2);
+    color: #ff6b6b;
+}
+
+.action-btn.danger:hover {
+    background-color: rgba(255, 0, 0, 0.3);
+}
+
+.notifications-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.notification-card {
+    display: flex;
+    align-items: center;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    padding: 15px;
+    transition: background-color 0.2s ease;
+}
+
+.notification-card:hover {
+    background-color: #222;
+}
+
+.notification-card.unread {
+    border-left: 4px solid #8a2be2;
+    background-color: rgba(138, 43, 226, 0.1);
+}
+
+.notification-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #2a2a2a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    color: #8a2be2;
+    font-size: 1.2rem;
+}
+
+.notification-content {
+    flex-grow: 1;
+}
+
+.notification-message {
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.notification-date {
+    color: #888;
+    font-size: 0.8rem;
+}
+
+.notification-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-small {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-accept {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-accept:hover {
+    background-color: #45a049;
+}
+
+.btn-reject {
+    background-color: #f44336;
+    color: white;
+}
+
+.btn-reject:hover {
+    background-color: #d32f2f;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 5px;
+    transition: color 0.2s ease;
+}
+
+.btn-icon:hover {
+    color: #ccc;
+}
+
+.mark-read:hover {
+    color: #4CAF50;
+}
+
+.delete-notification:hover {
+    color: #f44336;
+}
+
+.no-notifications {
+    text-align: center;
+    padding: 40px;
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    color: #aaa;
+}
+
+.inline-form {
+    display: inline;
+}
+
+/* Estilos para mensajes de alerta */
+.alert {
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.alert-success {
+    background-color: rgba(0, 128, 0, 0.2);
+    border-left: 4px solid green;
+    color: #ccc;
+}
+
+.alert-error {
+    background-color: rgba(255, 0, 0, 0.2);
+    border-left: 4px solid red;
+    color: #ccc;
+}
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Filtrado de notificaciones
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const notificationCards = document.querySelectorAll('.notification-card');
+        
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                // Remover clase active de todos los botones
+                filterButtons.forEach(btn => btn.classList.remove('active'));
+                
+                // Añadir clase active al botón clickeado
+                this.classList.add('active');
+                
+                // Obtener el filtro seleccionado
+                const filter = this.getAttribute('data-filter');
+                
+                // Mostrar/ocultar notificaciones según el filtro
+                notificationCards.forEach(card => {
+                    if (filter === 'all') {
+                        card.style.display = 'flex';
+                    } else if (filter === 'unread') {
+                        card.style.display = card.classList.contains('unread') ? 'flex' : 'none';
+                    } else {
+                        card.style.display = card.getAttribute('data-type') === filter ? 'flex' : 'none';
+                    }
+                });
+            });
+        });
+        
+        // Marcar todas como leídas
+        const markAllReadBtn = document.getElementById('markAllReadBtn');
+        if (markAllReadBtn) {
+            markAllReadBtn.addEventListener('click', function() {
+                if (confirm('¿Marcar todas las notificaciones como leídas?')) {
+                    window.location.href = '/mark-all-notifications-read';
+                }
+            });
+        }
+        
+        // Eliminar todas las notificaciones
+        const deleteAllBtn = document.getElementById('deleteAllBtn');
+        if (deleteAllBtn) {
+            deleteAllBtn.addEventListener('click', function() {
+                if (confirm('¿Estás seguro de que deseas eliminar todas las notificaciones?')) {
+                    window.location.href = '/delete-all-notifications';
+                }
+            });
+        }
+    });
+</script>
+
+<%- include('partials/footer') %>

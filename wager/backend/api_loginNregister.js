@@ -97,3 +97,7 @@ router.post("/procesar_registro", async (req, res) => {
 
 // Exportar solo el router
 module.exports = router
+
+// Si necesitas exportar las sesiones y verificarSesion para usarlos en otros archivos:
+// module.exports.sesiones = sesiones;
+// module.exports.verificarSesion = verificarSesion;

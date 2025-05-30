@@ -1,0 +1,192 @@
+<%- include('partials/header', { title: 'Crear Equipo', username: username }) %>
+
+<div class="main-content">
+    <div class="content">
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error">
+                <%= error %>
+            </div>
+        <% } %>
+        
+        <div class="top-bar">
+            <h2 class="page-title">CREAR NUEVO EQUIPO</h2>
+            <div class="view-options">
+                <a href="/tournament" class="nav-link">← Volver a Torneos</a>
+            </div>
+        </div>
+        
+        <div class="create-team-container">
+            <form id="createTeamForm" action="/create-team" method="POST" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="team_name">Nombre del Equipo:</label>
+                    <input type="text" id="team_name" name="team_name" required>
+                    <small class="form-help">El nombre debe tener al menos 3 caracteres.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="team_tag">Tag del Equipo (2-5 caracteres):</label>
+                    <input type="text" id="team_tag" name="team_tag" maxlength="5" minlength="2" required>
+                    <small class="form-help">El tag aparecerá junto al nombre del equipo.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="team_description">Descripción:</label>
+                    <textarea id="team_description" name="team_description" rows="5"></textarea>
+                    <small class="form-help">Describe tu equipo, objetivos, requisitos, etc.</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="team_logo">Logo del Equipo:</label>
+                    <input type="file" id="team_logo" name="team_logo" accept="image/*">
+                    <small class="form-help">Formatos aceptados: JPG, PNG, GIF. Tamaño máximo: 5MB.</small>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Crear Equipo</button>
+                    <a href="/tournament" class="btn btn-outline">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.create-team-container {
+    background-color: #1a1a1a;
+    border-radius: 8px;
+    padding: 30px;
+    margin-top: 20px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    color: #fff;
+    font-weight: 600;
+}
+
+.form-group input[type="text"],
+.form-group textarea {
+    width: 100%;
+    padding: 12px;
+    border-radius: 4px;
+    background-color: #2a2a2a;
+    border: 1px solid #333;
+    color: #fff;
+    font-size: 1rem;
+}
+
+.form-group input[type="file"] {
+    background-color: #2a2a2a;
+    padding: 10px;
+    border-radius: 4px;
+    width: 100%;
+    color: #ccc;
+}
+
+.form-help {
+    display: block;
+    color: #888;
+    font-size: 0.8rem;
+    margin-top: 5px;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.btn {
+    padding: 12px 25px;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 1rem;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background-color: #8a2be2;
+    color: white;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #9b4ddb;
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 1px solid #8a2be2;
+    color: #8a2be2;
+}
+
+.btn-outline:hover {
+    background-color: rgba(138, 43, 226, 0.1);
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.alert-error {
+    background-color: rgba(255, 0, 0, 0.2);
+    border-left: 4px solid red;
+    color: #ccc;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validación del formulario
+    const createTeamForm = document.getElementById('createTeamForm');
+    
+    createTeamForm.addEventListener('submit', function(e) {
+        const teamName = document.getElementById('team_name').value;
+        const teamTag = document.getElementById('team_tag').value;
+        
+        if (teamName.length < 3) {
+            e.preventDefault();
+            alert('El nombre del equipo debe tener al menos 3 caracteres.');
+            return;
+        }
+        
+        if (teamTag.length < 2 || teamTag.length > 5) {
+            e.preventDefault();
+            alert('El tag del equipo debe tener entre 2 y 5 caracteres.');
+            return;
+        }
+    });
+    
+    // Vista previa del logo
+    const logoInput = document.getElementById('team_logo');
+    
+    logoInput.addEventListener('change', function() {
+        const file = this.files[0];
+        
+        if (file) {
+            if (file.size > 5 * 1024 * 1024) {
+                alert('El archivo es demasiado grande. El tamaño máximo es 5MB.');
+                this.value = '';
+                return;
+            }
+            
+            if (!file.type.match('image.*')) {
+                alert('Solo se permiten archivos de imagen.');
+                this.value = '';
+                return;
+            }
+        }
+    });
+});
+</script>
+
+<%- include('partials/footer') %>

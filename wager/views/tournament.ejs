@@ -1,70 +1,622 @@
-<%- include('partials/header', { title: 'League of Legends - Tournaments', username: username }) %>
+<%- include('partials/header', { title: 'Tournaments', username: username }) %>
 
-<div class="hero">
-    <div class="hero-content">
-        <h1>COMMUNITY TOURNAMENTS</h1>
-        <p>BATTLE YOUR WAY THROUGH SUMMONER'S RIFT AND CLAIM VICTORY</p>
-    </div>
-</div>
-<div class="sections">
-    <div class="section-card">
-        <h2>TOURNAMENTS</h2>
-        <p>Compete in ranked tournaments</p>
-    </div>
-    <div class="section-card2">
-        <h2>CASH MATCHES</h2>
-        <p>Play for prizes and glory</p>
-    </div>
-    <div class="section-card">
-        <h2>LEADERBOARDS</h2>
-        <p>Track your progress and rankings</p>
-    </div>
-</div>
-<div class="filters">
-    <button class="filter-btn active">ALL</button>
-    <button class="filter-btn">1v1</button>
-    <button class="filter-btn">2v2</button>
-    <button class="filter-btn">3v3</button>
-    <button class="filter-btn">5v5</button>
-</div>
-<div class="tournament-list">
-    <div class="tournament-item">
-        <div class="tournament-info">
-            <img src="/images/league_of_legends-icon.png" alt="Tournament" class="tournament-image">
-            <div>
-                <h3>20.00€</h3>
-                <p>5v5 Ranked - Best of 3</p>
-            </div>
-            <div>
-                <p>Skill Level: Gold+</p>
+<div class="main-content">
+    <div class="sidebar">
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">TUS CRÉDITOS</h3>
+            <div class="user-credits">
+                <span class="credits-amount"><%= userCreditos.toFixed(2) %></span>
+                <span class="credits-label">Créditos</span>
             </div>
         </div>
-        <button class="btn btn-primary">Join Tournament</button>
-    </div>
-    <div class="tournament-item">
-        <div class="tournament-info">
-            <img src="/images/league_of_legends-icon.png" alt="Tournament" class="tournament-image">
-            <div>
-                <h3>15.00€</h3>
-                <p>5v5 Ranked - Best of 3</p>
+        
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">TUS EQUIPOS</h3>
+            <% if (userTeams && userTeams.length > 0) { %>
+                <div class="user-teams">
+                    <% userTeams.forEach(team => { %>
+                        <div class="team-item">
+                            <% if (team.logo_path) { %>
+                                <img src="<%= team.logo_path %>" alt="<%= team.name %>" class="team-logo">
+                            <% } else { %>
+                                <div class="team-logo-placeholder"><%= team.tag %></div>
+                            <% } %>
+                            <div class="team-info">
+                                <div class="team-name"><%= team.name %></div>
+                                <div class="team-members"><%= team.member_count %> miembros</div>
+                            </div>
+                            <a href="/team/<%= team.id_team %>" class="team-view-btn">Ver</a>
+                        </div>
+                    <% }); %>
+                </div>
+                <button id="createTeamBtn" class="btn btn-outline">Crear Nuevo Equipo</button>
+            <% } else { %>
+                <div class="no-teams">
+                    <p>No tienes equipos creados.</p>
+                    <button id="createTeamBtn" class="btn btn-primary">Crear Mi Primer Equipo</button>
+                </div>
+            <% } %>
+        </div>
+        
+        <% if (memberTeams && memberTeams.length > 0) { %>
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">EQUIPOS DONDE PARTICIPAS</h3>
+                <div class="user-teams">
+                    <% memberTeams.forEach(team => { %>
+                        <div class="team-item">
+                            <% if (team.logo_path) { %>
+                                <img src="<%= team.logo_path %>" alt="<%= team.name %>" class="team-logo">
+                            <% } else { %>
+                                <div class="team-logo-placeholder"><%= team.tag %></div>
+                            <% } %>
+                            <div class="team-info">
+                                <div class="team-name"><%= team.name %></div>
+                                <div class="team-role"><%= team.role %></div>
+                            </div>
+                            <a href="/team/<%= team.id_team %>" class="team-view-btn">Ver</a>
+                        </div>
+                    <% }); %>
+                </div>
             </div>
-            <div>
-                <p>Skill Level: Silver+</p>
+        <% } %>
+        
+        <% if (invitations && invitations.length > 0) { %>
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">INVITACIONES PENDIENTES</h3>
+                <div class="invitations-container">
+                    <% invitations.forEach(invitation => { %>
+                        <div class="invitation-item">
+                            <div class="invitation-header">
+                                <div class="invitation-team"><%= invitation.team_name %> [<%= invitation.team_tag %>]</div>
+                                <div class="invitation-role">Rol: <%= invitation.role %></div>
+                            </div>
+                            <div class="invitation-details">
+                                <div class="invitation-from">De: <%= invitation.inviter_username %></div>
+                                <div class="invitation-date">Fecha: <%= new Date(invitation.invitation_date).toLocaleDateString() %></div>
+                            </div>
+                            <div class="invitation-actions">
+                                <form action="/accept-invitation" method="POST" class="inline-form">
+                                    <input type="hidden" name="invitation_id" value="<%= invitation.id_invitation %>">
+                                    <button type="submit" class="btn-small btn-accept">Aceptar</button>
+                                </form>
+                                <form action="/reject-invitation" method="POST" class="inline-form">
+                                    <input type="hidden" name="invitation_id" value="<%= invitation.id_invitation %>">
+                                    <button type="submit" class="btn-small btn-reject">Rechazar</button>
+                                </form>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            </div>
+        <% } %>
+        
+        <% if (notificationCount > 0) { %>
+            <div class="sidebar-section">
+                <h3 class="sidebar-title">NOTIFICACIONES</h3>
+                <div class="notification-badge">
+                    <a href="/notifications" class="notification-link">
+                        Tienes <%= notificationCount %> notificaciones nuevas
+                    </a>
+                </div>
+            </div>
+        <% } %>
+        
+        <div class="sidebar-section">
+            <h3 class="sidebar-title">FILTROS</h3>
+            <div class="filter-section">
+                <div class="filter-group">
+                    <div class="filter-label">Formato:</div>
+                    <div class="filter-options">
+                        <div class="filter-option">
+                            <input type="checkbox" id="format-all" checked>
+                            <label for="format-all">Todos</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="format-1v1">
+                            <label for="format-1v1">1v1</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="format-5v5">
+                            <label for="format-5v5">5v5</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filter-group">
+                    <div class="filter-label">Región:</div>
+                    <div class="filter-options">
+                        <div class="filter-option">
+                            <input type="checkbox" id="region-all" checked>
+                            <label for="region-all">Todas</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="region-na">
+                            <label for="region-na">NA</label>
+                        </div>
+                        <div class="filter-option">
+                            <input type="checkbox" id="region-eu">
+                            <label for="region-eu">EU</label>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <button class="btn btn-primary">Join Tournament</button>
+    </div>
+    
+    <div class="content">
+        <% if (message) { %>
+            <div class="alert alert-success">
+                <% if (message === 'team-created') { %>
+                    Equipo creado correctamente.
+                <% } else if (message === 'tournament-joined') { %>
+                    Te has inscrito al torneo correctamente.
+                <% } else if (message === 'team-deleted') { %>
+                    Equipo eliminado correctamente.
+                <% } else if (message === 'left-team') { %>
+                    Has abandonado el equipo correctamente.
+                <% } else if (message === 'invitation-accepted') { %>
+                    Has aceptado la invitación y ahora eres miembro del equipo.
+                <% } else if (message === 'invitation-rejected') { %>
+                    Has rechazado la invitación al equipo.
+                <% } else { %>
+                    <%= message %>
+                <% } %>
+            </div>
+        <% } %>
+        
+        <% if (error) { %>
+            <div class="alert alert-error">
+                <% if (error === 'insufficient-credits') { %>
+                    No tienes suficientes créditos para inscribirte a este torneo.
+                <% } else if (error === 'already-registered') { %>
+                    Ya estás inscrito en este torneo.
+                <% } else if (error === 'no-team') { %>
+                    Necesitas un equipo para inscribirte a este torneo.
+                <% } else if (error === 'not-team-captain') { %>
+                    Solo el capitán del equipo puede realizar esta acción.
+                <% } else if (error === 'not-team-member') { %>
+                    No eres miembro de este equipo.
+                <% } else if (error === 'user-not-found') { %>
+                    Usuario no encontrado.
+                <% } else if (error === 'invitation-not-found') { %>
+                    La invitación no existe o ya no está disponible.
+                <% } else if (error === 'role-already-taken') { %>
+                    El rol ya está ocupado por otro miembro del equipo.
+                <% } else { %>
+                    <%= error %>
+                <% } %>
+            </div>
+        <% } %>
+        
+        <div class="top-bar">
+            <h2 class="page-title">TORNEOS DISPONIBLES</h2>
+            <div class="view-options">
+                <a href="#" class="nav-link active">Próximos</a>
+                <a href="#" class="nav-link">En Curso</a>
+                <a href="#" class="nav-link">Completados</a>
+            </div>
+        </div>
+        
+        <div class="tournaments-grid">
+            <% if (tournaments && tournaments.length > 0) { %>
+                <% tournaments.forEach(tournament => { %>
+                    <div class="tournament-card">
+                        <div class="tournament-header">
+                            <% if (tournament.image_path) { %>
+                                <img src="<%= tournament.image_path %>" alt="<%= tournament.name %>" class="tournament-image">
+                            <% } else { %>
+                                <img src="/images/league_of_legends-icon.png" alt="Tournament" class="tournament-image">
+                            <% } %>
+                            <div class="prize"><%= tournament.prize_pool %> Credits</div>
+                        </div>
+                        <div class="tournament-info">
+                            <h3 class="tournament-title"><%= tournament.name %></h3>
+                            <p><%= new Date(tournament.start_date).toLocaleString() %> 
+                                <% 
+                                    const now = new Date();
+                                    const tournamentDate = new Date(tournament.start_date);
+                                    const diffTime = Math.abs(tournamentDate - now);
+                                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                                    const diffHours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                    const diffMinutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+                                %>
+                                <span class="start-time">
+                                    Starts in <%= diffDays %>D <%= diffHours %>H <%= diffMinutes %>M
+                                </span>
+                            </p>
+                            <p><%= tournament.format %></p>
+                            <p><%= tournament.region %></p>
+                        </div>
+                        <div class="tournament-actions">
+                            <a href="/tournament/<%= tournament.id_tournament %>" class="btn btn-primary">Ver Detalles</a>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <p>No hay torneos disponibles.</p>
+            <% } %>
+        </div>
     </div>
 </div>
-<script src="/js/client.js"></script>
+
+<style>
+/* Estilos generales */
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #121212;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+}
+
+.main-content {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #1e1e1e;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
+}
+
+.content {
+    flex-grow: 1;
+    padding: 20px;
+}
+
+/* Estilos de la barra lateral */
+.sidebar-title {
+    color: #8a2be2;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #8a2be2;
+    padding-bottom: 5px;
+}
+
+.sidebar-section {
+    margin-bottom: 20px;
+}
+
+/* Estilos de créditos de usuario */
+.user-credits {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.credits-amount {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #4CAF50;
+    margin-right: 5px;
+}
+
+.credits-label {
+    font-size: 1em;
+    color: #ccc;
+}
+
+/* Estilos de equipos de usuario */
+.user-teams {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.team-item {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.team-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+}
+
+.team-logo-placeholder {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #333;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+.team-info {
+    flex-grow: 1;
+}
+
+.team-name {
+    font-weight: bold;
+    color: #fff;
+}
+
+.team-members {
+    color: #aaa;
+    font-size: 0.9em;
+}
+
+.team-role {
+    color: #8a2be2;
+    font-size: 0.9em;
+}
+
+.team-view-btn {
+    background-color: #8a2be2;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.team-view-btn:hover {
+    background-color: #6c23a8;
+}
+
+.no-teams {
+    text-align: center;
+    color: #aaa;
+}
+
+/* Estilos de filtros */
+.filter-section {
+    margin-top: 10px;
+}
+
+.filter-group {
+    margin-bottom: 15px;
+}
+
+.filter-label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #ddd;
+}
+
+.filter-options {
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-option {
+    margin-bottom: 5px;
+}
+
+.filter-option label {
+    margin-left: 5px;
+    color: #ccc;
+}
+
+/* Estilos de la barra superior */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.page-title {
+    color: #fff;
+    margin: 0;
+}
+
+.view-options {
+    display: flex;
+    gap: 20px;
+}
+
+.nav-link {
+    color: #aaa;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+    color: #fff;
+}
+
+.nav-link.active {
+    color: #8a2be2;
+    font-weight: bold;
+}
+
+/* Estilos de la cuadrícula de torneos */
+.tournaments-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.tournament-card {
+    background-color: #1e1e1e;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.tournament-card:hover {
+    transform: translateY(-5px);
+}
+
+.tournament-header {
+    position: relative;
+}
+
+.tournament-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    display: block;
+}
+
+.prize {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: #ffc107;
+    padding: 5px 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.tournament-info {
+    padding: 15px;
+}
+
+.tournament-title {
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.tournament-info p {
+    color: #aaa;
+    font-size: 0.9em;
+    margin-bottom: 8px;
+}
+
+.tournament-actions {
+    padding: 15px;
+    text-align: center;
+}
+
+/* Estilos de botones */
+.btn {
+    padding: 10px 15px;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+    color: white;
+    display: inline-block;
+}
+
+.btn-primary {
+    background-color: #8a2be2;
+}
+
+.btn-primary:hover {
+    background-color: #6c23a8;
+}
+
+.btn-outline {
+    background-color: transparent;
+    border: 2px solid #8a2be2;
+    color: #8a2be2;
+}
+
+.btn-outline:hover {
+    background-color: #6c23a8;
+    color: white;
+}
+
+/* Estilos para invitaciones pendientes */
+.invitations-container {
+    margin-top: 10px;
+}
+
+.invitation-item {
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-left: 3px solid #8a2be2;
+}
+
+.invitation-header {
+    margin-bottom: 8px;
+}
+
+.invitation-team {
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 3px;
+}
+
+.invitation-role {
+    color: #8a2be2;
+    font-size: 0.9rem;
+}
+
+.invitation-details {
+    margin-bottom: 10px;
+}
+
+.invitation-from, .invitation-date {
+    color: #aaa;
+    font-size: 0.8rem;
+    margin-bottom: 3px;
+}
+
+.invitation-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-small {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-accept {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-accept:hover {
+    background-color: #45a049;
+}
+
+.btn-reject {
+    background-color: #f44336;
+    color: white;
+}
+
+.btn-reject:hover {
+    background-color: #d32f2f;
+}
+
+/* Estilos para notificaciones */
+.notification-badge {
+    background-color: #8a2be2;
+    padding: 10px;
+    border-radius: 4px;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.notification-link {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    display: block;
+}
+
+.notification-link:hover {
+    text-decoration: underline;
+}
+</style>
+
 <script>
-    $(document).ready(function() {
-        $('.filter-btn').click(function() {
-            $('.filter-btn').removeClass('active');
-            $(this).addClass('active');
-        });
-        $('.btn-primary').click(function() {
-            alert('Tournament joined successfully!');
-        });
+    document.getElementById('createTeamBtn').addEventListener('click', function() {
+        window.location.href = '/create-team';
     });
 </script>
 

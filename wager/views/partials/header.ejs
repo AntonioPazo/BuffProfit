@@ -7,6 +7,7 @@
     <meta name="robots" content="index, follow">
     <title>Buff Profit - <%= title %></title>
     <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 </head>
 <body>
@@ -15,13 +16,26 @@
             <img src="/images/BuffProfit.png" alt="Buff Profit">
             <span>Buff Profit</span>
         </a>
+        <% if (username == 'admin') { %>
+        <a href="/tournament">Tournaments</a>
+        <a href="/matchfinder">Matchfinder</a>
+        <a href="/more">More</a>
+        <a href="/admin"> Panel administrador</a>
+        <% } else { %>
         <div class="nav-links">
             <a href="/tournament">Tournaments</a>
             <a href="/matchfinder">Matchfinder</a>
             <a href="/more">More</a>
         </div>
+        <% } %>
         <% if (username) { %>
             <div class="user-section">
+                <% if (typeof notificationCount !== 'undefined' && notificationCount > 0) { %>
+                <a href="/notifications" class="notification-icon">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-count"><%= notificationCount %></span>
+                </a>
+                <% } %>
                 <span class="username"><%= username %></span>
                 <button class="btn btn-outline" onclick="logout()">LOGOUT</button>
             </div>
@@ -32,6 +46,32 @@
             </div>
         <% } %>
     </nav>
+    
+    <style>
+    /* Estilos para el icono de notificaciones */
+    .notification-icon {
+        position: relative;
+        margin-right: 15px;
+        color: #fff;
+        font-size: 1.2rem;
+    }
+    
+    .notification-count {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background-color: #ff4d4d;
+        color: white;
+        font-size: 0.7rem;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    </style>
+    
     <script>
         function logout() {
             localStorage.removeItem("token");

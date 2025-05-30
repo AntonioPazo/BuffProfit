@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ username, password }),
-          credentials: "include",
+          credentials: "include", // Importante para incluir cookies
         })
 
         console.log("Respuesta recibida, status:", resHttp.status)
@@ -73,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ username, summoner, idSummoner, email, password }),
-          credentials: "include",
+          credentials: "include", // Importante para incluir cookies
         })
 
         const resBody = await resHttp.json()
@@ -96,11 +96,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Función para configurar el token en el encabezado de autorización
   function configureAuthHeader(token) {
+    // Agregar un interceptor para todas las solicitudes fetch futuras
     const originalFetch = window.fetch
     window.fetch = (url, options = {}) => {
+      // Si no hay opciones o no hay headers, inicializarlos
       options = options || {}
       options.headers = options.headers || {}
-      options.credentials = "include"
+      options.credentials = "include" // Siempre incluir cookies
 
       // Agregar el token de autorización a todas las solicitudes
       if (token) {

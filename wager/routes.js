@@ -62,6 +62,35 @@ const uploadTournament = multer({
   },
 })
 
+// Configuración de multer para subir logos de equipos
+const teamStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(__dirname, "public/uploads/teams")
+    // Crear el directorio si no existe
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true })
+    }
+    cb(null, dir)
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9)
+    cb(null, "team-" + uniqueSuffix + path.extname(file.originalname))
+  },
+})
+
+const uploadTeam = multer({
+  storage: teamStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // Límite de 5MB
+  fileFilter: (req, file, cb) => {
+    // Aceptar solo imágenes
+    if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+      return cb(new Error("Solo se permiten archivos de imagen"))
+    }
+    cb(null, true)
+  },
+})
+
+// Simulación de sesiones (en un entorno real, usar base de datos)
 const sesiones = {}
 
 // Middleware de test
@@ -153,6 +182,23 @@ function isAdminFromToken(req) {
   return false
 }
 
+// Función para crear una notificación
+async function createNotification(userId, type, message, relatedId = null) {
+  try {
+    const connection = await global.poolPromise.getConnection()
+    await connection.execute(
+      `INSERT INTO notification (id_summoner, type, message, related_id)
+       VALUES (?, ?, ?, ?)`,
+      [userId, type, message, relatedId],
+    )
+    connection.release()
+    return true
+  } catch (err) {
+    console.error("Error al crear notificación:", err)
+    return false
+  }
+}
+
 // Rutas estáticas
 router.get("/", (req, res) => {
   const username = getUsernameFromToken(req)
@@ -166,9 +212,47 @@ router.get("/login", (req, res) => {
   res.render("loginNregister", { title: "Authentication", username: username })
 })
 
-router.get("/dashboard", verificarSesion, (req, res) => {
-  console.log("Username obtenido en dashboard:", req.username) // Registro de depuración
-  res.render("dashboard", { title: "Dashboard", username: req.username })
+router.get("/dashboard", verificarSesion, async (req, res) => {
+  console.log("Username obtenido en dashboard:", req.username)
+
+  try {
+    const connection = await global.poolPromise.getConnection()
+
+    // Obtener el id_summoner del usuario
+    const [userRows] = await connection.execute(`SELECT id_summoner FROM user WHERE username = ?`, [req.username])
+
+    if (userRows.length === 0) {
+      connection.release()
+      return res.redirect("/login")
+    }
+
+    const userId = userRows[0].id_summoner
+
+    // Obtener notificaciones no leídas
+    const [notifications] = await connection.execute(
+      `SELECT * FROM notification 
+       WHERE id_summoner = ? AND is_read = FALSE
+       ORDER BY created_at DESC`,
+      [userId],
+    )
+
+    connection.release()
+
+    res.render("dashboard", {
+      title: "Dashboard",
+      username: req.username,
+      notifications: notifications,
+      notificationCount: notifications.length,
+    })
+  } catch (err) {
+    console.error("Error al cargar notificaciones:", err)
+    res.render("dashboard", {
+      title: "Dashboard",
+      username: req.username,
+      notifications: [],
+      notificationCount: 0,
+    })
+  }
 })
 
 // Ruta para el panel de administración
@@ -333,7 +417,18 @@ router.get("/matchfinder", async (req, res) => {
     const currentUserSummonerId = userRows[0].id_summoner
     const userCreditos = userRows[0].creditos
 
+    // Obtener notificaciones no leídas
+    const [notifications] = await connection.execute(
+      `SELECT * FROM notification 
+       WHERE id_summoner = ? 
+       AND is_read = FALSE
+       ORDER BY created_at DESC`,
+      [currentUserSummonerId],
+    )
+
     // Obtener partidas donde id_summoner_red es NULL (partidas sin oponente)
+    // y donde id_summoner_blue no es el del usuario actual (no mostrar sus propias partidas)
+    // y donde el usuario tiene suficientes créditos para la entry fee
     const [matches] = await connection.execute(
       `
       SELECT g.*, u.username as creator_username 
@@ -406,6 +501,8 @@ router.get("/matchfinder", async (req, res) => {
       completedMatches: completedMatches,
       tournaments: tournaments,
       userCreditos: userCreditos,
+      notifications: notifications,
+      notificationCount: notifications.length,
       message: req.query.message,
       error: req.query.error,
     })
@@ -420,6 +517,8 @@ router.get("/matchfinder", async (req, res) => {
       completedMatches: [],
       tournaments: [],
       userCreditos: 0,
+      notifications: [],
+      notificationCount: 0,
     })
   }
 })
@@ -476,6 +575,21 @@ router.get("/join-match/:id", verificarSesion, async (req, res) => {
     )
 
     if (result.affectedRows > 0) {
+      // Notificar al creador de la partida
+      const [creatorInfo] = await connection.execute(
+        "SELECT u.id_summoner FROM game g JOIN user u ON g.id_summoner_blue = u.id_summoner WHERE g.id_game = ?",
+        [matchId],
+      )
+
+      if (creatorInfo.length > 0) {
+        await createNotification(
+          creatorInfo[0].id_summoner,
+          "match_joined",
+          `${username} se ha unido a tu partida.`,
+          matchId,
+        )
+      }
+
       // Redirigir a la página de resultados
       connection.release()
       return res.redirect(`/match-result/${matchId}?joined=true`)
@@ -552,6 +666,16 @@ router.get("/match-result/:id", verificarSesion, async (req, res) => {
       }
     }
 
+    // Obtener notificaciones no leídas
+    const [userInfo] = await connection.execute("SELECT id_summoner FROM user WHERE username = ?", [username])
+    const [notifications] = await connection.execute(
+      `SELECT * FROM notification 
+       WHERE id_summoner = ? 
+       AND is_read = FALSE
+       ORDER BY created_at DESC`,
+      [userInfo[0].id_summoner],
+    )
+
     connection.release()
 
     // Renderizar la página de resultados
@@ -565,6 +689,8 @@ router.get("/match-result/:id", verificarSesion, async (req, res) => {
       hasRatedOpponent: hasRatedOpponent,
       userWon: userWon,
       creditsWon: creditsWon,
+      notifications: notifications,
+      notificationCount: notifications.length,
       message: req.query.message,
       error: req.query.error,
       joined: req.query.joined === "true",
@@ -643,6 +769,15 @@ router.post("/submit-result/:id", verificarSesion, upload.array("proof_images", 
         [true, reportedWinner, JSON.stringify(proofImagePaths), matchId],
       )
 
+      // Notificar al otro jugador
+      const opponentId = isBluePlayer ? match.red_summoner_id : match.blue_summoner_id
+      await createNotification(
+        opponentId,
+        "match_result_reported",
+        `${username} ha reportado un resultado para tu partida. Por favor, confirma el resultado.`,
+        matchId,
+      )
+
       connection.release()
       return res.redirect(`/match-result/${matchId}?message=result-submitted`)
     }
@@ -676,6 +811,19 @@ router.post("/submit-result/:id", verificarSesion, upload.array("proof_images", 
 
           // Marcar los créditos como transferidos
           await connection.execute("UPDATE game SET credits_transferred = true WHERE id_game = ?", [matchId])
+
+          // Notificar al ganador
+          const [winnerInfo] = await connection.execute("SELECT username FROM user WHERE id_summoner = ?", [
+            reportedWinner,
+          ])
+          if (winnerInfo.length > 0) {
+            await createNotification(
+              reportedWinner,
+              "match_won",
+              `¡Has ganado la partida! Se han añadido ${totalCredits} créditos a tu cuenta.`,
+              matchId,
+            )
+          }
         }
 
         connection.release()
@@ -698,6 +846,24 @@ router.post("/submit-result/:id", verificarSesion, upload.array("proof_images", 
            dispute = true
            WHERE id_game = ?`,
           [true, reportedWinner, JSON.stringify(proofImagePaths), matchId],
+        )
+
+        // Notificar a ambos jugadores sobre la disputa
+        const blueId = match.blue_summoner_id
+        const redId = match.red_summoner_id
+
+        await createNotification(
+          blueId,
+          "match_dispute",
+          `Hay una disputa en el resultado de tu partida. Los administradores revisarán las pruebas.`,
+          matchId,
+        )
+
+        await createNotification(
+          redId,
+          "match_dispute",
+          `Hay una disputa en el resultado de tu partida. Los administradores revisarán las pruebas.`,
+          matchId,
         )
 
         connection.release()
@@ -785,6 +951,7 @@ router.post("/rate-opponent/:id", verificarSesion, async (req, res) => {
 
     // Actualizar la reputación del oponente
     const opponentId = isBluePlayer ? match.red_summoner_id : match.blue_summoner_id
+    const opponentName = isBluePlayer ? match.red_username : match.blue_username
 
     await connection.execute("UPDATE user SET reputation = reputation + ? WHERE id_summoner = ?", [
       ratingValue,
@@ -796,6 +963,18 @@ router.post("/rate-opponent/:id", verificarSesion, async (req, res) => {
 
     await connection.execute(`UPDATE game SET ${ratedField} = true WHERE id_game = ?`, [matchId])
 
+    // Notificar al oponente sobre la calificación
+    let ratingText = "neutral"
+    if (ratingValue > 0) ratingText = ratingValue > 1 ? "muy positiva" : "positiva"
+    if (ratingValue < 0) ratingText = ratingValue < -1 ? "muy negativa" : "negativa"
+
+    await createNotification(
+      opponentId,
+      "reputation_rating",
+      `${username} te ha dado una calificación ${ratingText} (${ratingValue > 0 ? "+" : ""}${ratingValue}).`,
+      matchId,
+    )
+
     connection.release()
 
     // Redirigir a la página de matchfinder en lugar de volver a la página de resultados
@@ -806,13 +985,967 @@ router.post("/rate-opponent/:id", verificarSesion, async (req, res) => {
   }
 })
 
-// Rutas para otras páginas
-router.get("/tournament", (req, res) => {
-  const username = getUsernameFromToken(req)
-  console.log("Username obtenido en tournament:", username) // Registro de depuración
-  res.render("tournament", { title: "League of Legends - Tournaments", username: username })
+// Ruta para la página de torneos
+router.get("/tournament", verificarSesion, async (req, res) => {
+  const username = req.username
+
+  try {
+    const connection = await global.poolPromise.getConnection()
+
+    // Obtener los créditos del usuario
+    const [userRows] = await connection.execute("SELECT id_summoner, creditos FROM user WHERE username = ?", [username])
+
+    if (userRows.length === 0) {
+      connection.release()
+      return res.redirect("/login")
+    }
+
+    const userId = userRows[0].id_summoner
+    const userCreditos = userRows[0].creditos
+
+    // Obtener notificaciones no leídas
+    const [notifications] = await connection.execute(
+      `SELECT * FROM notification 
+       WHERE id_summoner = ? 
+       AND is_read = FALSE
+       ORDER BY created_at DESC`,
+      [userId],
+    )
+
+    // Obtener invitaciones pendientes
+    const [invitations] = await connection.execute(
+      `SELECT ti.*, t.name as team_name, t.tag as team_tag, u.username as inviter_username
+       FROM team_invitation ti
+       JOIN team t ON ti.id_team = t.id_team
+       JOIN user u ON ti.invited_by = u.id_summoner
+       WHERE ti.id_summoner = ? AND ti.status = 'pending'
+       ORDER BY ti.invitation_date DESC`,
+      [userId],
+    )
+
+    // Obtener los torneos disponibles
+    const [tournaments] = await connection.execute(
+      `SELECT * FROM tournament 
+       WHERE start_date > NOW() 
+       ORDER BY start_date ASC`,
+    )
+
+    // Obtener los equipos creados por el usuario
+    const [userTeams] = await connection.execute(
+      `SELECT t.*, COUNT(tm.id_team_member) as member_count
+       FROM team t
+       LEFT JOIN team_member tm ON t.id_team = tm.id_team
+       WHERE t.created_by = ?
+       GROUP BY t.id_team
+       ORDER BY t.created_at DESC`,
+      [userId],
+    )
+
+    // Obtener los equipos donde el usuario es miembro pero no creador
+    const [memberTeams] = await connection.execute(
+      `SELECT t.*, tm.role
+       FROM team t
+       JOIN team_member tm ON t.id_team = tm.id_team
+       WHERE tm.id_summoner = ? AND t.created_by != ?
+       ORDER BY tm.joined_at DESC`,
+      [userId, userId],
+    )
+
+    connection.release()
+
+    res.render("tournament", {
+      title: "Tournaments",
+      username: username,
+      tournaments: tournaments,
+      userTeams: userTeams,
+      memberTeams: memberTeams,
+      userCreditos: userCreditos,
+      notifications: notifications,
+      notificationCount: notifications.length,
+      invitations: invitations,
+      message: req.query.message,
+      error: req.query.error,
+    })
+  } catch (err) {
+    console.error("Error al cargar la página de torneos:", err)
+    res.render("tournament", {
+      title: "Tournaments",
+      username: username,
+      tournaments: [],
+      userTeams: [],
+      memberTeams: [],
+      userCreditos: 0,
+      notifications: [],
+      notificationCount: 0,
+      invitations: [],
+      error: "Error al cargar los datos",
+    })
+  }
 })
 
+// Ruta para ver detalles de un torneo específico
+router.get("/tournament/:id", verificarSesion, async (req, res) => {
+  const tournamentId = req.params.id
+  const username = req.username
+
+  try {
+    const connection = await global.poolPromise.getConnection()
+
+    // Obtener información del usuario
+    const [userRows] = await connection.execute("SELECT id_summoner FROM user WHERE username = ?", [username])
+    const userId = userRows[0].id_summoner
+
+    // Obtener notificaciones no leídas
+    const [notifications] = await connection.execute(
+      `SELECT * FROM notification 
+       WHERE id_summoner = ? 
+       AND is_read = FALSE
+       ORDER BY created_at DESC`,
+      [userId],
+    )
+
+    // Obtener información del torneo
+    const [tournamentRows] = await connection.execute(`SELECT * FROM tournament WHERE id_tournament = ?`, [
+      tournamentId,
+    ])
+
+    if (tournamentRows.length === 0) {
+      connection.release()
+      return res.redirect("/tournament?error=tournament-not-found")
+    }
+
+    const tournament = tournamentRows[0]
+
+    // Obtener equipos participantes
+    const [participants] = await connection.execute(
+      `SELECT tt.*, t.name as team_name, t.tag as team_tag, t.logo_path
+       FROM tournament_team tt
+       JOIN team t ON tt.id_team = t.id_team
+       WHERE tt.id_tournament = ?
+       ORDER BY tt.registration_date ASC`,
+      [tournamentId],
+    )
+
+    // Obtener los equipos del usuario
+    const [userTeams] = await connection.execute(
+      `SELECT t.*, tm.is_captain
+       FROM team t
+       JOIN team_member tm ON t.id_team = tm.id_team
+       WHERE tm.id_summoner = (SELECT id_summoner FROM user WHERE username = ?)
+       AND tm.is_captain = true`,
+      [username],
+    )
+
+    // Verificar si alguno de los equipos del usuario ya está inscrito
+    let userTeamRegistered = false
+    let registeredTeamId = null
+
+    if (userTeams.length > 0 && participants.length > 0) {
+      for (const team of userTeams) {
+        for (const participant of participants) {
+          if (team.id_team === participant.id_team) {
+            userTeamRegistered = true
+            registeredTeamId = team.id_team
+            break
+          }
+        }
+        if (userTeamRegistered) break
+      }
+    }
+
+    connection.release()
+
+    res.render("tournament_detail", {
+      title: tournament.name,
+      username: username,
+      tournament: tournament,
+      participants: participants,
+      userTeams: userTeams,
+      userTeamRegistered: userTeamRegistered,
+      registeredTeamId: registeredTeamId,
+      notifications: notifications,
+      notificationCount: notifications.length,
+      message: req.query.message,
+      error: req.query.error,
+    })
+  } catch (err) {
+    console.error("Error al cargar detalles del torneo:", err)
+    return res.redirect("/tournament?error=server-error")
+  }
+})
+
+// Ruta para crear un nuevo equipo
+router.post("/create-team", verificarSesion, uploadTeam.single("team_logo"), async (req, res) => {
+  try {
+    const { team_name, team_tag, team_description } = req.body
+
+    // Obtener el id_summoner del usuario
+    const connection = await global.poolPromise.getConnection()
+    const [userRows] = await connection.execute("SELECT id_summoner FROM user WHERE username = ?", [req.username])
+
+    if (userRows.length === 0) {
+      connection.release()
+      return res.redirect("/tournament?error=user-not-found")
+    }
+
+    const userId = userRows[0].id_summoner
+
+    // Verificar si el nombre o tag ya existen
+    const [existingTeams] = await connection.execute("SELECT * FROM team WHERE name = ? OR tag = ?", [
+      team_name,
+      team_tag,
+    ])
+
+    if (existingTeams.length > 0) {
+      connection.release()
+      return res.redirect("/tournament?error=team-name-or-tag-exists")
+    }
+
+    // Obtener la ruta del logo si se subió
+    let logoPath = null
+    if (req.file) {
+      logoPath = `/uploads/teams/${req.file.filename}`
+    }
+
+    // Insertar el equipo en la base de datos
+    const [result] = await connection.execute(
+      `INSERT INTO team (name, tag, logo_path, description, created_by)
+       VALUES (?, ?, ?, ?, ?)`,
+      [team_name, team_tag, logoPath, team_description, userId],
+    )
+
+    if (result.affectedRows === 0) {
+      connection.release()
+      return res.redirect("/tournament?error=failed-to-create-team")
+    }
+
+    const teamId = result.insertId
+
+    // Añadir al creador como capitán del equipo
+    await connection.execute(
+      `INSERT INTO team_member (id_team, id_summoner, role, is_captain)
+       VALUES (?, ?, ?, ?)`,
+      [teamId, userId, "Capitán", true],
+    )
+
+    connection.release()
+    return res.redirect("/tournament?message=team-created")
+  } catch (err) {
+    console.error("Error al crear equipo:", err)
+    return res.redirect("/tournament?error=server-error")
+  }
+})
+
+// Ruta para ver detalles de un equipo
+router.get("/team/:id", verificarSesion, async (req, res) => {
+  const teamId = req.params.id
+  const username = req.username
+
+  try {
+    const connection = await global.poolPromise.getConnection()
+
+    // Obtener información del usuario
+    const [userRows] = await connection.execute("SELECT id_summoner FROM user WHERE username = ?", [username])
+    const userId = userRows[0].id_summoner
+
+    // Obtener notificaciones no leídas
+    const [notifications] = await connection.execute(
+      `SELECT * FROM notification 
+       WHERE id_summoner = ? AND is_read = FALSE
+       ORDER BY created_at DESC`,
+      [userId],
+    )
+
+    // Obtener información del equipo
+    const [teamRows] = await connection.execute(
+      `SELECT t.*, u.username as creator_username
+       FROM team t
+       JOIN user u ON t.created_by = u.id_summoner
+       WHERE t.id_team = ?`,
+      [teamId],
+    )
+
+    if (teamRows.length === 0) {
+      connection.release()
+      return res.redirect("/tournament?error=team-not-found")
+    }
+
+    const team = teamRows[0]
+
+    // Obtener miembros del equipo
+    const [members] = await connection.execute(
+      `SELECT tm.*, u.username, u.reputation
+       FROM team_member tm
+       JOIN user u ON tm.id_summoner = u.id_summoner
+       WHERE tm.id_team = ?
+       ORDER BY tm.is_captain DESC, tm.joined_at ASC`,
+      [teamId],
+    )
+
+    // Verificar si el usuario es miembro del equipo
+    const [userMemberRows] = await connection.execute(
+      `SELECT * FROM team_member tm
+       JOIN user u ON tm.id_summoner = u.id_summoner
+       WHERE tm.id_team = ? AND u.username = ?`,
+      [teamId, username],
+    )
+
+    const isTeamMember = userMemberRows.length > 0
+    const isTeamCaptain = isTeamMember && userMemberRows[0].is_captain
+
+    // Obtener torneos en los que participa el equipo
+    const [tournaments] = await connection.execute(
+      `SELECT t.*, tt.registration_date
+       FROM tournament t
+       JOIN tournament_team tt ON t.id_tournament = tt.id_tournament
+       WHERE tt.id_team = ?
+       ORDER BY t.start_date ASC`,
+      [teamId],
+    )
+
+    // Obtener invitaciones pendientes para este equipo (solo para el capitán)
+    const [pendingInvitations] = await connection.execute(
+      `SELECT ti.*, u.username as invited_username
+       FROM team_invitation ti
+       JOIN user u ON ti.id_summoner = u.id_summoner
+       WHERE ti.id_team = ? AND ti.status = 'pending'
+       ORDER BY ti.invitation_date DESC`,
+      [teamId],
+    )
+
+    connection.release()
+
+    res.render("team_detail", {
+      title: team.name,
+      username: username,
+      team: team,
+      members: members,
+      tournaments: tournaments,
+      isTeamMember: isTeamMember,
+      isTeamCaptain: isTeamCaptain,
+      pendingInvitations: pendingInvitations,
+      notifications: notifications,
+      notificationCount: notifications.length,
+      message: req.query.message,
+      error: req.query.error,
+    })
+  } catch (err) {
+    console.error("Error al cargar detalles del equipo:", err)
+    return res.redirect("/tournament?error=server-error")
+  }
+})
+
+// Ruta para inscribir un equipo en un torneo
+router.post("/join-tournament", verificarSesion, async (req, res) => {
+  try {
+    const { tournament_id, team_id } = req.body
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Verificar si el usuario es capitán del equipo
+    const [captainRows] = await connection.execute(
+      `SELECT tm.* FROM team_member tm
+       JOIN user u ON tm.id_summoner = u.id_summoner
+       WHERE tm.id_team = ? AND u.username = ? AND tm.is_captain = true`,
+      [team_id, req.username],
+    )
+
+    if (captainRows.length === 0) {
+      connection.release()
+      return res.redirect(`/tournament?error=not-team-captain`)
+    }
+
+    // Verificar si el equipo ya está inscrito en el torneo
+    const [registrationRows] = await connection.execute(
+      `SELECT * FROM tournament_team
+       WHERE id_tournament = ? AND id_team = ?`,
+      [tournament_id, team_id],
+    )
+
+    if (registrationRows.length > 0) {
+      connection.release()
+      return res.redirect(`/tournament?error=already-registered`)
+    }
+
+    // Obtener información del torneo
+    const [tournamentRows] = await connection.execute(`SELECT * FROM tournament WHERE id_tournament = ?`, [
+      tournament_id,
+    ])
+
+    if (tournamentRows.length === 0) {
+      connection.release()
+      return res.redirect(`/tournament?error=tournament-not-found`)
+    }
+
+    const tournament = tournamentRows[0]
+
+    // Verificar si hay espacio en el torneo
+    if (tournament.current_participants >= tournament.max_participants) {
+      connection.release()
+      return res.redirect(`/tournament?error=tournament-full`)
+    }
+
+    // Verificar si el usuario tiene suficientes créditos
+    const [userRows] = await connection.execute(`SELECT creditos FROM user WHERE username = ?`, [req.username])
+
+    if (userRows[0].creditos < tournament.entry_fee) {
+      connection.release()
+      return res.redirect(`/tournament?error=insufficient-credits`)
+    }
+
+    // Restar los créditos al usuario
+    await connection.execute(`UPDATE user SET creditos = creditos - ? WHERE username = ?`, [
+      tournament.entry_fee,
+      req.username,
+    ])
+
+    // Inscribir al equipo en el torneo
+    await connection.execute(
+      `INSERT INTO tournament_team (id_tournament, id_team)
+       VALUES (?, ?)`,
+      [tournament_id, team_id],
+    )
+
+    // Actualizar el contador de participantes
+    await connection.execute(
+      `UPDATE tournament SET current_participants = current_participants + 1
+       WHERE id_tournament = ?`,
+      [tournament_id],
+    )
+
+    // Obtener información del equipo
+    const [teamInfo] = await connection.execute("SELECT name FROM team WHERE id_team = ?", [team_id])
+
+    // Notificar a todos los miembros del equipo
+    const [teamMembers] = await connection.execute(
+      "SELECT u.id_summoner FROM team_member tm JOIN user u ON tm.id_summoner = u.id_summoner WHERE tm.id_team = ?",
+      [team_id],
+    )
+
+    for (const member of teamMembers) {
+      if (member.id_summoner !== userRows[0].id_summoner) {
+        // No notificar al capitán que inscribió al equipo
+        await createNotification(
+          member.id_summoner,
+          "tournament_joined",
+          `Tu equipo ${teamInfo[0].name} ha sido inscrito en el torneo ${tournament.name}.`,
+          tournament_id,
+        )
+      }
+    }
+
+    connection.release()
+    return res.redirect(`/tournament?message=tournament-joined`)
+  } catch (err) {
+    console.error("Error al inscribir equipo en torneo:", err)
+    return res.redirect(`/tournament?error=server-error`)
+  }
+})
+
+// Ruta para invitar a un jugador a un equipo (modificada para usar invitaciones)
+router.post("/invite-player", verificarSesion, async (req, res) => {
+  try {
+    const { team_id, player_username, player_role } = req.body
+    const username = req.username
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Verificar si el usuario es capitán del equipo
+    const [captainRows] = await connection.execute(
+      `SELECT tm.* FROM team_member tm
+       JOIN user u ON tm.id_summoner = u.id_summoner
+       WHERE tm.id_team = ? AND u.username = ? AND tm.is_captain = true`,
+      [team_id, username],
+    )
+
+    if (captainRows.length === 0) {
+      connection.release()
+      return res.redirect(`/team/${team_id}?error=not-team-captain`)
+    }
+
+    // Verificar si el jugador existe
+    const [playerRows] = await connection.execute(`SELECT id_summoner FROM user WHERE username = ?`, [player_username])
+
+    if (playerRows.length === 0) {
+      connection.release()
+      return res.redirect(`/team/${team_id}?error=player-not-found`)
+    }
+
+    const player_id = playerRows[0].id_summoner
+
+    // Verificar si el jugador ya es miembro del equipo
+    const [memberRows] = await connection.execute(`SELECT * FROM team_member WHERE id_team = ? AND id_summoner = ?`, [
+      team_id,
+      player_id,
+    ])
+
+    if (memberRows.length > 0) {
+      connection.release()
+      return res.redirect(`/team/${team_id}?error=player-already-in-team`)
+    }
+
+    // Verificar si ya existe un jugador con ese rol en el equipo
+    const [roleRows] = await connection.execute(`SELECT * FROM team_member WHERE id_team = ? AND role = ?`, [
+      team_id,
+      player_role,
+    ])
+
+    if (roleRows.length > 0) {
+      connection.release()
+      return res.redirect(`/team/${team_id}?error=role-already-taken`)
+    }
+
+    // Verificar si ya existe una invitación pendiente para este jugador en este equipo
+    const [invitationRows] = await connection.execute(
+      `SELECT * FROM team_invitation 
+       WHERE id_team = ? AND id_summoner = ? AND status = 'pending'`,
+      [team_id, player_id],
+    )
+
+    if (invitationRows.length > 0) {
+      connection.release()
+      return res.redirect(`/team/${team_id}?error=invitation-already-sent`)
+    }
+
+    // Obtener el id_summoner del usuario que invita
+    const [inviterRows] = await connection.execute(`SELECT id_summoner FROM user WHERE username = ?`, [username])
+    const inviter_id = inviterRows[0].id_summoner
+
+    // Obtener información del equipo para la notificación
+    const [teamInfo] = await connection.execute(`SELECT name FROM team WHERE id_team = ?`, [team_id])
+
+    // Crear la invitación
+    await connection.execute(
+      `INSERT INTO team_invitation (id_team, id_summoner, role, invited_by)
+       VALUES (?, ?, ?, ?)`,
+      [team_id, player_id, player_role, inviter_id],
+    )
+
+    // Crear notificación para el jugador invitado
+    await createNotification(
+      player_id,
+      "team_invitation",
+      `Has sido invitado a unirte al equipo ${teamInfo[0].name} como ${player_role}.`,
+      team_id,
+    )
+
+    connection.release()
+    return res.redirect(`/team/${team_id}?message=invitation-sent`)
+  } catch (err) {
+    console.error("Error al invitar jugador:", err)
+    return res.redirect(`/team/${req.body.team_id}?error=server-error`)
+  }
+})
+
+// Ruta para aceptar una invitación a un equipo
+router.post("/accept-invitation", verificarSesion, async (req, res) => {
+  try {
+    const { invitation_id } = req.body
+    const username = req.username
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Verificar si la invitación existe y pertenece al usuario
+    const [invitationRows] = await connection.execute(
+      `SELECT ti.*, t.name as team_name, u.username as inviter_username
+       FROM team_invitation ti
+       JOIN team t ON ti.id_team = t.id_team
+       JOIN user u ON ti.invited_by = u.id_summoner
+       WHERE ti.id_invitation = ? 
+       AND ti.id_summoner = (SELECT id_summoner FROM user WHERE username = ?)
+       AND ti.status = 'pending'`,
+      [invitation_id, username],
+    )
+
+    if (invitationRows.length === 0) {
+      connection.release()
+      return res.redirect(`/tournament?error=invitation-not-found`)
+    }
+
+    const invitation = invitationRows[0]
+
+    // Verificar si el rol ya está ocupado (podría haber cambiado desde que se envió la invitación)
+    const [roleRows] = await connection.execute(`SELECT * FROM team_member WHERE id_team = ? AND role = ?`, [
+      invitation.id_team,
+      invitation.role,
+    ])
+
+    if (roleRows.length > 0) {
+      // Actualizar el estado de la invitación a rechazada
+      await connection.execute(`UPDATE team_invitation SET status = 'rejected' WHERE id_invitation = ?`, [
+        invitation_id,
+      ])
+      connection.release()
+      return res.redirect(`/tournament?error=role-already-taken`)
+    }
+
+    // Añadir al jugador al equipo
+    await connection.execute(
+      `INSERT INTO team_member (id_team, id_summoner, role, is_captain)
+       VALUES (?, ?, ?, false)`,
+      [invitation.id_team, invitation.id_summoner, invitation.role],
+    )
+
+    // Actualizar el estado de la invitación a aceptada
+    await connection.execute(`UPDATE team_invitation SET status = 'accepted' WHERE id_invitation = ?`, [invitation_id])
+
+    // Notificar al capitán que la invitación fue aceptada
+    await createNotification(
+      invitation.invited_by,
+      "invitation_accepted",
+      `${username} ha aceptado tu invitación para unirse al equipo ${invitation.team_name} como ${invitation.role}.`,
+      invitation.id_team,
+    )
+
+    connection.release()
+    return res.redirect(`/tournament?message=invitation-accepted`)
+  } catch (err) {
+    console.error("Error al aceptar invitación:", err)
+    return res.redirect(`/tournament?error=server-error`)
+  }
+})
+
+// Ruta para rechazar una invitación a un equipo
+router.post("/reject-invitation", verificarSesion, async (req, res) => {
+  try {
+    const { invitation_id } = req.body
+    const username = req.username
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Verificar si la invitación existe y pertenece al usuario
+    const [invitationRows] = await connection.execute(
+      `SELECT ti.*, t.name as team_name, u.username as inviter_username
+       FROM team_invitation ti
+       JOIN team t ON ti.id_team = t.id_team
+       JOIN user u ON ti.invited_by = u.id_summoner
+       WHERE ti.id_invitation = ? 
+       AND ti.id_summoner = (SELECT id_summoner FROM user WHERE username = ?)
+       AND ti.status = 'pending'`,
+      [invitation_id, username],
+    )
+
+    if (invitationRows.length === 0) {
+      connection.release()
+      return res.redirect(`/tournament?error=invitation-not-found`)
+    }
+
+    const invitation = invitationRows[0]
+
+    // Actualizar el estado de la invitación a rechazada
+    await connection.execute(`UPDATE team_invitation SET status = 'rejected' WHERE id_invitation = ?`, [invitation_id])
+
+    // Notificar al capitán que la invitación fue rechazada
+    await createNotification(
+      invitation.invited_by,
+      "invitation_rejected",
+      `${username} ha rechazado tu invitación para unirte al equipo ${invitation.team_name}.`,
+      invitation.id_team,
+    )
+
+    connection.release()
+    return res.redirect(`/tournament?message=invitation-rejected`)
+  } catch (err) {
+    console.error("Error al rechazar invitación:", err)
+    return res.redirect(`/tournament?error=server-error`)
+  }
+})
+
+// Ruta para cancelar una invitación (por parte del capitán)
+router.post("/cancel-invitation", verificarSesion, async (req, res) => {
+  try {
+    const { invitation_id, team_id } = req.body
+    const username = req.username
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Verificar si el usuario es capitán del equipo
+    const [captainRows] = await connection.execute(
+      `SELECT tm.* FROM team_member tm
+       JOIN user u ON tm.id_summoner = u.id_summoner
+       WHERE tm.id_team = ? AND u.username = ? AND tm.is_captain = true`,
+      [team_id, username],
+    )
+
+    if (captainRows.length === 0) {
+      connection.release()
+      return res.redirect(`/team/${team_id}?error=not-team-captain`)
+    }
+
+    // Verificar si la invitación existe
+    const [invitationRows] = await connection.execute(
+      `SELECT ti.*, u.username as invited_username
+       FROM team_invitation ti
+       JOIN user u ON ti.id_summoner = u.id_summoner
+       WHERE ti.id_invitation = ? AND ti.id_team = ? AND ti.status = 'pending'`,
+      [invitation_id, team_id],
+    )
+
+    if (invitationRows.length === 0) {
+      connection.release()
+      return res.redirect(`/team/${team_id}?error=invitation-not-found`)
+    }
+
+    const invitation = invitationRows[0]
+
+    // Actualizar el estado de la invitación a rechazada
+    await connection.execute(`UPDATE team_invitation SET status = 'rejected' WHERE id_invitation = ?`, [invitation_id])
+
+    // Notificar al jugador que la invitación fue cancelada
+    await createNotification(
+      invitation.id_summoner,
+      "invitation_canceled",
+      `Tu invitación para unirte al equipo ha sido cancelada por el capitán.`,
+      team_id,
+    )
+
+    connection.release()
+    return res.redirect(`/team/${team_id}?message=invitation-canceled`)
+  } catch (err) {
+    console.error("Error al cancelar invitación:", err)
+    return res.redirect(`/team/${req.body.team_id}?error=server-error`)
+  }
+})
+
+// Ruta para eliminar a un miembro del equipo
+router.post("/remove-team-member", verificarSesion, async (req, res) => {
+  try {
+    const { team_id, member_id } = req.body
+    const username = req.username
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Verificar si el usuario es capitán del equipo
+    const [captainRows] = await connection.execute(
+      `SELECT tm.* FROM team_member tm
+       JOIN user u ON tm.id_summoner = u.id_summoner
+       WHERE tm.id_team = ? AND u.username = ? AND tm.is_captain = true`,
+      [team_id, username],
+    )
+
+    if (captainRows.length === 0) {
+      connection.release()
+      return res.redirect(`/team/${team_id}?error=not-team-captain`)
+    }
+
+    // Verificar que no se esté intentando eliminar al capitán
+    const [memberRows] = await connection.execute(
+      `SELECT is_captain, u.username FROM team_member tm
+       JOIN user u ON tm.id_summoner = u.id_summoner
+       WHERE tm.id_team = ? AND tm.id_summoner = ?`,
+      [team_id, member_id],
+    )
+
+    if (memberRows.length === 0) {
+      connection.release()
+      return res.redirect(`/team/${team_id}?error=member-not-found`)
+    }
+
+    if (memberRows[0].is_captain) {
+      connection.release()
+      return res.redirect(`/team/${team_id}?error=cannot-remove-captain`)
+    }
+
+    // Eliminar al miembro del equipo
+    await connection.execute(`DELETE FROM team_member WHERE id_team = ? AND id_summoner = ?`, [team_id, member_id])
+
+    // Notificar al miembro que ha sido eliminado
+    await createNotification(member_id, "removed_from_team", `Has sido eliminado del equipo por el capitán.`, team_id)
+
+    connection.release()
+    return res.redirect(`/team/${team_id}?message=member-removed`)
+  } catch (err) {
+    console.error("Error al eliminar miembro del equipo:", err)
+    return res.redirect(`/team/${req.body.team_id}?error=server-error`)
+  }
+})
+
+// Ruta para abandonar un equipo
+router.post("/leave-team", verificarSesion, async (req, res) => {
+  try {
+    const { team_id } = req.body
+    const username = req.username
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Obtener el id_summoner del usuario
+    const [userRows] = await connection.execute(`SELECT id_summoner FROM user WHERE username = ?`, [username])
+
+    if (userRows.length === 0) {
+      connection.release()
+      return res.redirect(`/tournament?error=user-not-found`)
+    }
+
+    const user_id = userRows[0].id_summoner
+
+    // Verificar si el usuario es capitán
+    const [memberRows] = await connection.execute(
+      `SELECT is_captain FROM team_member WHERE id_team = ? AND id_summoner = ?`,
+      [team_id, user_id],
+    )
+
+    if (memberRows.length === 0) {
+      connection.release()
+      return res.redirect(`/tournament?error=not-team-member`)
+    }
+
+    // Si es capitán, no puede abandonar el equipo (debe eliminarlo)
+    if (memberRows[0].is_captain) {
+      connection.release()
+      return res.redirect(`/team/${team_id}?error=captain-cannot-leave`)
+    }
+
+    // Obtener información del equipo para la notificación
+    const [teamInfo] = await connection.execute(
+      `SELECT t.name, u.id_summoner as captain_id
+       FROM team t
+       JOIN team_member tm ON t.id_team = tm.id_team
+       JOIN user u ON tm.id_summoner = u.id_summoner
+       WHERE t.id_team = ? AND tm.is_captain = true`,
+      [team_id],
+    )
+
+    // Eliminar al usuario del equipo
+    await connection.execute(`DELETE FROM team_member WHERE id_team = ? AND id_summoner = ?`, [team_id, user_id])
+
+    // Notificar al capitán que un miembro ha abandonado el equipo
+    if (teamInfo.length > 0) {
+      await createNotification(
+        teamInfo[0].captain_id,
+        "member_left_team",
+        `${username} ha abandonado tu equipo ${teamInfo[0].name}.`,
+        team_id,
+      )
+    }
+
+    connection.release()
+    return res.redirect(`/tournament?message=left-team`)
+  } catch (err) {
+    console.error("Error al abandonar equipo:", err)
+    return res.redirect(`/tournament?error=server-error`)
+  }
+})
+
+// Ruta para eliminar un equipo
+router.post("/delete-team", verificarSesion, async (req, res) => {
+  try {
+    const { team_id } = req.body
+    const username = req.username
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Verificar si el usuario es capitán del equipo
+    const [captainRows] = await connection.execute(
+      `SELECT tm.* FROM team_member tm
+       JOIN user u ON tm.id_summoner = u.id_summoner
+       WHERE tm.id_team = ? AND u.username = ? AND tm.is_captain = true`,
+      [team_id, username],
+    )
+
+    if (captainRows.length === 0) {
+      connection.release()
+      return res.redirect(`/tournament?error=not-team-captain`)
+    }
+
+    // Verificar si el equipo está inscrito en algún torneo
+    const [tournamentRows] = await connection.execute(`SELECT * FROM tournament_team WHERE id_team = ?`, [team_id])
+
+    if (tournamentRows.length > 0) {
+      connection.release()
+      return res.redirect(`/team/${team_id}?error=team-in-tournament`)
+    }
+
+    // Obtener información del equipo y sus miembros para notificaciones
+    const [teamInfo] = await connection.execute(`SELECT name FROM team WHERE id_team = ?`, [team_id])
+    const [teamMembers] = await connection.execute(
+      `SELECT u.id_summoner, u.username 
+       FROM team_member tm 
+       JOIN user u ON tm.id_summoner = u.id_summoner 
+       WHERE tm.id_team = ? AND tm.is_captain = false`,
+      [team_id],
+    )
+
+    // Eliminar todas las invitaciones pendientes
+    await connection.execute(`DELETE FROM team_invitation WHERE id_team = ?`, [team_id])
+
+    // Eliminar todos los miembros del equipo
+    await connection.execute(`DELETE FROM team_member WHERE id_team = ?`, [team_id])
+
+    // Eliminar el equipo
+    await connection.execute(`DELETE FROM team WHERE id_team = ?`, [team_id])
+
+    // Notificar a todos los miembros que el equipo ha sido eliminado
+    for (const member of teamMembers) {
+      await createNotification(
+        member.id_summoner,
+        "team_deleted",
+        `El equipo ${teamInfo[0].name} ha sido eliminado por el capitán.`,
+        null,
+      )
+    }
+
+    connection.release()
+    return res.redirect(`/tournament?message=team-deleted`)
+  } catch (err) {
+    console.error("Error al eliminar equipo:", err)
+    return res.redirect(`/tournament?error=server-error`)
+  }
+})
+
+// Ruta para ver notificaciones
+router.get("/notifications", verificarSesion, async (req, res) => {
+  const username = req.username
+
+  try {
+    const connection = await global.poolPromise.getConnection()
+
+    // Obtener el id_summoner del usuario
+    const [userRows] = await connection.execute(`SELECT id_summoner FROM user WHERE username = ?`, [username])
+
+    if (userRows.length === 0) {
+      connection.release()
+      return res.redirect("/dashboard")
+    }
+
+    const userId = userRows[0].id_summoner
+
+    // Obtener todas las notificaciones del usuario
+    const [notifications] = await connection.execute(
+      `SELECT n.*, ti.status 
+       FROM notification n
+       LEFT JOIN team_invitation ti ON n.related_id = ti.id_invitation AND n.type = 'team_invitation'
+       WHERE n.id_summoner = ? 
+       ORDER BY n.created_at DESC`,
+      [userId],
+    )
+
+    // Marcar todas las notificaciones como leídas
+    await connection.execute(`UPDATE notification SET is_read = true WHERE id_summoner = ?`, [userId])
+
+    connection.release()
+
+    res.render("notifications", {
+      title: "Notificaciones",
+      username: username,
+      notifications: notifications,
+      message: req.query.message || null,
+      error: req.query.error || null,
+      notificationCount: 0, // Ya que acabamos de marcar todas como leídas
+    })
+  } catch (err) {
+    console.error("Error al cargar notificaciones:", err)
+    res.render("notifications", {
+      title: "Notificaciones",
+      username: username,
+      notifications: [],
+      message: null,
+      error: "Error al cargar notificaciones",
+      notificationCount: 0,
+    })
+  }
+})
+
+// Rutas para otras páginas
 router.get("/more", (req, res) => {
   const username = getUsernameFromToken(req)
   console.log("Username obtenido en more:", username) // Registro de depuración
@@ -833,7 +1966,17 @@ router.get("/create-match", verificarSesion, async (req, res) => {
   try {
     // Obtener los créditos del usuario
     const connection = await global.poolPromise.getConnection()
-    const [userRows] = await connection.execute("SELECT creditos FROM user WHERE username = ?", [username])
+    const [userRows] = await connection.execute("SELECT id_summoner, creditos FROM user WHERE username = ?", [username])
+
+    // Obtener notificaciones no leídas
+    const [notifications] = await connection.execute(
+      `SELECT * FROM notification 
+       WHERE id_summoner = ? 
+       AND is_read = FALSE
+       ORDER BY created_at DESC`,
+      [userRows[0].id_summoner],
+    )
+
     connection.release()
 
     const userCreditos = userRows.length > 0 ? userRows[0].creditos : 0
@@ -842,6 +1985,8 @@ router.get("/create-match", verificarSesion, async (req, res) => {
       title: "Create Match",
       username: username,
       userCreditos: userCreditos,
+      notifications: notifications,
+      notificationCount: notifications.length,
     })
   } catch (err) {
     console.error("Error al obtener créditos del usuario:", err)
@@ -849,6 +1994,8 @@ router.get("/create-match", verificarSesion, async (req, res) => {
       title: "Create Match",
       username: username,
       userCreditos: 0,
+      notifications: [],
+      notificationCount: 0,
     })
   }
 })
@@ -995,6 +2142,53 @@ router.post("/procesar_registro", async (req, res) => {
   } catch (err) {
     console.error("Error en registro:", err)
     res.status(500).json({ err: true, errmsg: "Error al procesar registro: " + err.message })
+  }
+})
+
+// Añadir esta nueva ruta GET para crear equipos
+router.get("/create-team", verificarSesion, async (req, res) => {
+  const username = req.username
+
+  try {
+    const connection = await global.poolPromise.getConnection()
+
+    // Obtener el id_summoner del usuario
+    const [userRows] = await connection.execute("SELECT id_summoner FROM user WHERE username = ?", [username])
+
+    if (userRows.length === 0) {
+      connection.release()
+      return res.redirect("/login")
+    }
+
+    const userId = userRows[0].id_summoner
+
+    // Obtener notificaciones no leídas
+    const [notifications] = await connection.execute(
+      `SELECT * FROM notification 
+       WHERE id_summoner = ? 
+       AND is_read = FALSE
+       ORDER BY created_at DESC`,
+      [userId],
+    )
+
+    connection.release()
+
+    res.render("create_team", {
+      title: "Crear Equipo",
+      username: username,
+      notifications: notifications,
+      notificationCount: notifications.length,
+      error: null, // Asegurarnos de que error siempre esté definido
+    })
+  } catch (err) {
+    console.error("Error al cargar la página de crear equipo:", err)
+    res.render("create_team", {
+      title: "Crear Equipo",
+      username: username,
+      notifications: [],
+      notificationCount: 0,
+      error: "Error al cargar la página",
+    })
   }
 })
 

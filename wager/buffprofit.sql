@@ -59,9 +59,10 @@ ADD COLUMN red_rating_to_blue INT NULL;
 
 INSERT INTO user (id_user, username, email, password, summoner, id_summoner, reputation, created_at, creditos)
 VALUES
-(1, 'a', 'a@gmail.com', '$2b$10$VgxVmyKrndzYfNf0jRTTreqbdhszkjlzP4ulMCw0erUGsOWv1dyNC', 'a', 'a#euw', 0, '2025-05-10 12:01:52', 100.00),
-(2, 'b', 'b@gmail.com', '$2b$10$y1qOKTL/s0rf/aMIbwvSxu82pkq73e94/dUSSAbWyu5JAbUBaj5.C', 'b', 'b#euw', 0, '2025-05-10 12:02:03', 100.00),
-(3, 'c', 'c@gmail.com', '$2b$10$iQwQML7QfoZMt9vLNYoKreQA2h8.s9e7mmcLiTQK5W.GwtXbpPGJa', 'c', 'c#euw', 0, '2025-05-10 12:04:09', 100.00);
+(1, 'admin', 'admin@gmail.com', '$2b$10$3pgwAObNk/3/tXMdmNVm.e.xU/OGx4pLJhNsFp8pU7cI/7T1jPznK', 'admin', 'admin#euw', 0, '2025-05-10 12:04:09', 100.00),
+(2, 'a', 'a@gmail.com', '$2b$10$VgxVmyKrndzYfNf0jRTTreqbdhszkjlzP4ulMCw0erUGsOWv1dyNC', 'a', 'a#euw', 0, '2025-05-10 12:01:52', 100.00),
+(3, 'b', 'b@gmail.com', '$2b$10$y1qOKTL/s0rf/aMIbwvSxu82pkq73e94/dUSSAbWyu5JAbUBaj5.C', 'b', 'b#euw', 0, '2025-05-10 12:02:03', 100.00),
+(4, 'c', 'c@gmail.com', '$2b$10$iQwQML7QfoZMt9vLNYoKreQA2h8.s9e7mmcLiTQK5W.GwtXbpPGJa', 'c', 'c#euw', 0, '2025-05-10 12:04:09', 100.00);
 
 -- Crear tabla para torneos
 CREATE TABLE IF NOT EXISTS tournament (
@@ -108,4 +109,70 @@ CREATE TABLE IF NOT EXISTS tournament_match (
   FOREIGN KEY (id_tournament) REFERENCES tournament(id_tournament) ON DELETE CASCADE,
   FOREIGN KEY (id_summoner_blue) REFERENCES user(id_summoner) ON DELETE CASCADE,
   FOREIGN KEY (id_summoner_red) REFERENCES user(id_summoner) ON DELETE CASCADE
+);
+
+-- Crear tabla para equipos
+CREATE TABLE IF NOT EXISTS team (
+  id_team INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  tag VARCHAR(10) NOT NULL,
+  logo_path VARCHAR(255),
+  description TEXT,
+  created_by VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (created_by) REFERENCES user(id_summoner) ON DELETE CASCADE
+);
+
+-- Crear tabla para miembros de equipos
+CREATE TABLE IF NOT EXISTS team_member (
+  id_team_member INT AUTO_INCREMENT PRIMARY KEY,
+  id_team INT NOT NULL,
+  id_summoner VARCHAR(255) NOT NULL,
+  role VARCHAR(50),
+  is_captain BOOLEAN DEFAULT FALSE,
+  joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_team) REFERENCES team(id_team) ON DELETE CASCADE,
+  FOREIGN KEY (id_summoner) REFERENCES user(id_summoner) ON DELETE CASCADE
+);
+
+-- Crear tabla para inscripciones de equipos en torneos
+CREATE TABLE IF NOT EXISTS tournament_team (
+  id_tournament_team INT AUTO_INCREMENT PRIMARY KEY,
+  id_tournament INT NOT NULL,
+  id_team INT NOT NULL,
+  registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_tournament) REFERENCES tournament(id_tournament) ON DELETE CASCADE,
+  FOREIGN KEY (id_team) REFERENCES team(id_team) ON DELETE CASCADE
+);
+
+-- Modificar la tabla tournament_match para soportar equipos
+ALTER TABLE tournament_match
+ADD COLUMN id_team_blue INT NULL,
+ADD COLUMN id_team_red INT NULL,
+ADD FOREIGN KEY (id_team_blue) REFERENCES team(id_team) ON DELETE SET NULL,
+ADD FOREIGN KEY (id_team_red) REFERENCES team(id_team) ON DELETE SET NULL;
+
+CREATE TABLE IF NOT EXISTS team_invitation (
+  id_invitation INT AUTO_INCREMENT PRIMARY KEY,
+  id_team INT NOT NULL,
+  id_summoner VARCHAR(255) NOT NULL,
+  role VARCHAR(50) NOT NULL,
+  invited_by VARCHAR(255) NOT NULL,
+  invitation_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
+  FOREIGN KEY (id_team) REFERENCES team(id_team) ON DELETE CASCADE,
+  FOREIGN KEY (id_summoner) REFERENCES user(id_summoner) ON DELETE CASCADE,
+  FOREIGN KEY (invited_by) REFERENCES user(id_summoner) ON DELETE CASCADE
+);
+
+-- Crear tabla para notificaciones
+CREATE TABLE IF NOT EXISTS notification (
+  id_notification INT AUTO_INCREMENT PRIMARY KEY,
+  id_summoner VARCHAR(255) NOT NULL,
+  type VARCHAR(50) NOT NULL,
+  message TEXT NOT NULL,
+  related_id INT,
+  is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (id_summoner) REFERENCES user(id_summoner) ON DELETE CASCADE
 );
