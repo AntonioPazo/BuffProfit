@@ -36,13 +36,11 @@ Desarrollar una plataforma web intuitiva y eficiente que facilite la organizaci�
 
 - RF01. Registro de usuarios.
 - RF02. Inicio de sesión y autenticación.
-- RF03. Recuperación de contraseña.
-- RF04. Navegación por los servicios de reparación.
-- RF05. Solicitud de creación de torneos.
-- RF06. Seguimiento en tiempo real del estado de los torneos.
-- RF07. Gestión integral de torneos.
-- RF08. Administración de usuarios por parte del personal autorizado.
-- RF9. Gestión de torneos por parte del administrador.
+- RF03. Solicitud de creación de torneos.
+- RF04. Seguimiento en tiempo real del estado de los torneos.
+- RF05. Gestión integral de torneos.
+- RF06. Administración de usuarios por parte del personal autorizado.
+- RF07. Gestión de torneos por parte del administrador.
 
 ## Requisitos No Funcionales
 
