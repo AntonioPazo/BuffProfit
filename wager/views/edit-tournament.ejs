@@ -1,0 +1,543 @@
+<%- include('partials/header', { title: 'Edit Tournament', username: username }) %>
+
+<div class="etf-main-container">
+    <!-- Background Effects -->
+    <div class="etf-bg-effects">
+        <div class="etf-gradient-orb-1"></div>
+        <div class="etf-gradient-orb-2"></div>
+        <div class="etf-gradient-orb-3"></div>
+    </div>
+    
+    <div class="etf-content-wrapper">
+        <!-- Header Navigation -->
+        <div class="etf-top-navigation">
+            <div class="etf-nav-content">
+                <h1 class="etf-page-title">EDITAR TORNEO</h1>
+                <a href="/admin" class="etf-back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Volver al Panel Admin</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Error Alert -->
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="etf-alert etf-alert-error">
+                <div class="etf-alert-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="etf-alert-content">
+                    <strong>Error:</strong> <%= error %>
+                </div>
+            </div>
+        <% } %>
+        
+        <!-- Form Container -->
+        <div class="etf-form-container">
+            <div class="etf-form-header">
+                <div class="etf-form-icon">
+                    <i class="fas fa-edit"></i>
+                </div>
+                <div class="etf-form-title-section">
+                    <h2 class="etf-form-title">Editar Torneo</h2>
+                    <p class="etf-form-subtitle">Modifica los detalles del torneo según sea necesario</p>
+                </div>
+            </div>
+            
+            <form id="etfEditTournamentForm" action="/update-tournament/<%= tournament.id_tournament %>" method="POST" enctype="multipart/form-data" class="etf-form">
+                <!-- Basic Information Section -->
+                <div class="etf-form-section">
+                    <div class="etf-section-header">
+                        <div class="etf-section-title">
+                            <i class="fas fa-info-circle"></i>
+                            <h3>Información Básica</h3>
+                        </div>
+                        <div class="etf-section-divider"></div>
+                    </div>
+                    
+                    <div class="etf-form-group">
+                        <label for="etfName" class="etf-form-label">
+                            <i class="fas fa-font"></i>
+                            Nombre del Torneo
+                        </label>
+                        <div class="etf-input-wrapper">
+                            <input type="text" id="etfName" name="name" class="etf-form-input" 
+                                   value="<%= tournament.name %>" placeholder="Ingresa el nombre del torneo" required>
+                            <div class="etf-input-focus-ring"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="etf-form-group">
+                        <label for="etfDescription" class="etf-form-label">
+                            <i class="fas fa-align-left"></i>
+                            Descripción del Torneo
+                        </label>
+                        <div class="etf-textarea-wrapper">
+                            <textarea id="etfDescription" name="description" class="etf-form-textarea" 
+                                      placeholder="Describe el torneo, reglas, premios, etc." rows="4"><%= tournament.description %></textarea>
+                            <div class="etf-textarea-focus-ring"></div>
+                            <div class="etf-char-counter">
+                                <span id="etfDescCounter"><%= tournament.description ? tournament.description.length : 0 %></span>/500
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="etf-form-group">
+                        <label for="etfTournamentImage" class="etf-form-label">
+                            <i class="fas fa-image"></i>
+                            Imagen del Torneo
+                        </label>
+                        
+                        <% if (tournament.image_path) { %>
+                            <div class="etf-current-image-section">
+                                <div class="etf-current-image-header">
+                                    <span class="etf-current-image-label">Imagen actual:</span>
+                                    <button type="button" class="etf-remove-image-btn" id="etfRemoveImageBtn">
+                                        <i class="fas fa-trash-alt"></i>
+                                        <span>Eliminar</span>
+                                    </button>
+                                </div>
+                                <div class="etf-current-image-container">
+                                    <img src="<%= tournament.image_path %>" alt="Tournament Image" class="etf-current-image">
+                                    <div class="etf-image-overlay">
+                                        <i class="fas fa-eye"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        <% } %>
+                        
+                        <div class="etf-file-upload-area" id="etfFileUploadArea">
+                            <input type="file" id="etfTournamentImage" name="tournament_image" accept="image/*" class="etf-file-input">
+                            <div class="etf-file-upload-content">
+                                <div class="etf-file-upload-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <div class="etf-file-upload-text">
+                                    <span class="etf-file-upload-main">
+                                        <% if (tournament.image_path) { %>
+                                            Arrastra una nueva imagen aquí o haz clic para cambiar
+                                        <% } else { %>
+                                            Arrastra tu imagen aquí o haz clic para seleccionar
+                                        <% } %>
+                                    </span>
+                                    <span class="etf-file-upload-sub">PNG, JPG, GIF hasta 5MB</span>
+                                </div>
+                            </div>
+                            <div class="etf-file-preview" id="etfFilePreview" style="display: none;">
+                                <img id="etfPreviewImage" src="/placeholder.svg" alt="Preview">
+                                <div class="etf-file-info">
+                                    <span id="etfFileName"></span>
+                                    <button type="button" class="etf-file-remove" id="etfRemoveFile">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tournament Details Section -->
+                <div class="etf-form-section">
+                    <div class="etf-section-header">
+                        <div class="etf-section-title">
+                            <i class="fas fa-cog"></i>
+                            <h3>Detalles del Torneo</h3>
+                        </div>
+                        <div class="etf-section-divider"></div>
+                    </div>
+                    
+                    <!-- Date and Time Row -->
+                    <div class="etf-form-row">
+                        <div class="etf-form-group">
+                            <label for="etfStartDate" class="etf-form-label">
+                                <i class="fas fa-calendar"></i>
+                                Fecha de Inicio
+                            </label>
+                            <div class="etf-input-wrapper">
+                                <input type="date" id="etfStartDate" name="start_date" class="etf-form-input" 
+                                       value="<%= new Date(tournament.start_date).toISOString().split('T')[0] %>" required>
+                                <div class="etf-input-focus-ring"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="etf-form-group">
+                            <label for="etfStartTime" class="etf-form-label">
+                                <i class="fas fa-clock"></i>
+                                Hora de Inicio
+                            </label>
+                            <div class="etf-input-wrapper">
+                                <input type="time" id="etfStartTime" name="start_time" class="etf-form-input" 
+                                       value="<%= new Date(tournament.start_date).toTimeString().split(' ')[0].substring(0, 5) %>" required>
+                                <div class="etf-input-focus-ring"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Fees Row -->
+                    <div class="etf-form-row">
+                        <div class="etf-form-group">
+                            <label for="etfEntryFee" class="etf-form-label">
+                                <i class="fas fa-ticket-alt"></i>
+                                Costo de Entrada
+                            </label>
+                            <div class="etf-input-wrapper">
+                                <input type="number" id="etfEntryFee" name="entry_fee" min="0" step="0.01" 
+                                       class="etf-form-input" value="<%= tournament.entry_fee %>">
+                                <div class="etf-input-focus-ring"></div>
+                                <div class="etf-input-suffix">Créditos</div>
+                            </div>
+                        </div>
+                        
+                        <div class="etf-form-group">
+                            <label for="etfPrizePool" class="etf-form-label">
+                                <i class="fas fa-trophy"></i>
+                                Premio Total
+                            </label>
+                            <div class="etf-input-wrapper">
+                                <input type="number" id="etfPrizePool" name="prize_pool" min="0" step="0.01" 
+                                       class="etf-form-input" value="<%= tournament.prize_pool %>">
+                                <div class="etf-input-focus-ring"></div>
+                                <div class="etf-input-suffix">Créditos</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Format Row -->
+                    <div class="etf-form-row">
+                        <div class="etf-form-group">
+                            <label for="etfTeamSize" class="etf-form-label">
+                                <i class="fas fa-users"></i>
+                                Tamaño de Equipo
+                            </label>
+                            <div class="etf-select-wrapper">
+                                <select id="etfTeamSize" name="team_size" class="etf-form-select">
+                                    <option value="1vs1" <%= tournament.team_size === '1vs1' ? 'selected' : '' %>>1vs1</option>
+                                    <option value="2vs2" <%= tournament.team_size === '2vs2' ? 'selected' : '' %>>2vs2</option>
+                                    <option value="3vs3" <%= tournament.team_size === '3vs3' ? 'selected' : '' %>>3vs3</option>
+                                    <option value="5vs5" <%= tournament.team_size === '5vs5' ? 'selected' : '' %>>5vs5</option>
+                                </select>
+                                <div class="etf-select-arrow">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="etf-select-focus-ring"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="etf-form-group">
+                            <label for="etfFormat" class="etf-form-label">
+                                <i class="fas fa-sitemap"></i>
+                                Formato
+                            </label>
+                            <div class="etf-select-wrapper">
+                                <select id="etfFormat" name="format" class="etf-form-select">
+                                    <option value="Eliminación Simple" <%= tournament.format === 'Eliminación Simple' ? 'selected' : '' %>>Eliminación Simple</option>
+                                    <option value="Eliminación Doble" <%= tournament.format === 'Eliminación Doble' ? 'selected' : '' %>>Eliminación Doble</option>
+                                    <option value="Grupos + Eliminación" <%= tournament.format === 'Grupos + Eliminación' ? 'selected' : '' %>>Grupos + Eliminación</option>
+                                    <option value="Round Robin" <%= tournament.format === 'Round Robin' ? 'selected' : '' %>>Round Robin</option>
+                                </select>
+                                <div class="etf-select-arrow">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="etf-select-focus-ring"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Game Settings Row -->
+                    <div class="etf-form-row">
+                        <div class="etf-form-group">
+                            <label for="etfMap" class="etf-form-label">
+                                <i class="fas fa-map"></i>
+                                Mapa
+                            </label>
+                            <div class="etf-select-wrapper">
+                                <select id="etfMap" name="map" class="etf-form-select">
+                                    <option value="Grieta del Invocador" <%= tournament.map === 'Grieta del Invocador' ? 'selected' : '' %>>Grieta del Invocador</option>
+                                    <option value="ARAM" <%= tournament.map === 'ARAM' ? 'selected' : '' %>>ARAM</option>
+                                    <option value="TFT" <%= tournament.map === 'TFT' ? 'selected' : '' %>>TFT</option>
+                                </select>
+                                <div class="etf-select-arrow">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="etf-select-focus-ring"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="etf-form-group">
+                            <label for="etfRegion" class="etf-form-label">
+                                <i class="fas fa-globe"></i>
+                                Región
+                            </label>
+                            <div class="etf-select-wrapper">
+                                <select id="etfRegion" name="region" class="etf-form-select">
+                                    <option value="euw" <%= tournament.region === 'euw' ? 'selected' : '' %>>EUW</option>
+                                    <option value="eune" <%= tournament.region === 'eune' ? 'selected' : '' %>>EUNE</option>
+                                    <option value="na" <%= tournament.region === 'na' ? 'selected' : '' %>>NA</option>
+                                    <option value="kr" <%= tournament.region === 'kr' ? 'selected' : '' %>>KR</option>
+                                    <option value="japan" <%= tournament.region === 'japan' ? 'selected' : '' %>>Japan</option>
+                                    <option value="br" <%= tournament.region === 'br' ? 'selected' : '' %>>BR</option>
+                                    <option value="lan" <%= tournament.region === 'lan' ? 'selected' : '' %>>LAN</option>
+                                    <option value="las" <%= tournament.region === 'las' ? 'selected' : '' %>>LAS</option>
+                                    <option value="oce" <%= tournament.region === 'oce' ? 'selected' : '' %>>OCE</option>
+                                    <option value="ru" <%= tournament.region === 'ru' ? 'selected' : '' %>>RU</option>
+                                    <option value="tr" <%= tournament.region === 'tr' ? 'selected' : '' %>>TR</option>
+                                </select>
+                                <div class="etf-select-arrow">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="etf-select-focus-ring"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Advanced Settings Row -->
+                    <div class="etf-form-row">
+                        <div class="etf-form-group">
+                            <label for="etfSkillLevel" class="etf-form-label">
+                                <i class="fas fa-star"></i>
+                                Nivel de Habilidad
+                            </label>
+                            <div class="etf-select-wrapper">
+                                <select id="etfSkillLevel" name="skill_level" class="etf-form-select">
+                                    <option value="All" <%= tournament.skill_level === 'All' ? 'selected' : '' %>>Todos</option>
+                                    <option value="Unranked" <%= tournament.skill_level === 'Unranked' ? 'selected' : '' %>>Sin Clasificar</option>
+                                    <option value="Iron-Gold" <%= tournament.skill_level === 'Iron-Gold' ? 'selected' : '' %>>Hierro-Oro</option>
+                                    <option value="Platinum+" <%= tournament.skill_level === 'Platinum+' ? 'selected' : '' %>>Platino+</option>
+                                    <option value="Diamond+" <%= tournament.skill_level === 'Diamond+' ? 'selected' : '' %>>Diamante+</option>
+                                </select>
+                                <div class="etf-select-arrow">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="etf-select-focus-ring"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="etf-form-group">
+                            <label for="etfMaxParticipants" class="etf-form-label">
+                                <i class="fas fa-users-cog"></i>
+                                Máximo de Participantes
+                            </label>
+                            <div class="etf-select-wrapper">
+                                <select id="etfMaxParticipants" name="max_participants" class="etf-form-select">
+                                    <option value="8" <%= tournament.max_participants == 8 ? 'selected' : '' %>>8</option>
+                                    <option value="16" <%= tournament.max_participants == 16 ? 'selected' : '' %>>16</option>
+                                    <option value="32" <%= tournament.max_participants == 32 ? 'selected' : '' %>>32</option>
+                                    <option value="64" <%= tournament.max_participants == 64 ? 'selected' : '' %>>64</option>
+                                </select>
+                                <div class="etf-select-arrow">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="etf-select-focus-ring"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Status Row -->
+                    <div class="etf-form-row">
+                        <div class="etf-form-group">
+                            <label for="etfStatus" class="etf-form-label">
+                                <i class="fas fa-flag"></i>
+                                Estado del Torneo
+                            </label>
+                            <div class="etf-select-wrapper">
+                                <select id="etfStatus" name="status" class="etf-form-select">
+                                    <option value="upcoming" <%= tournament.status === 'upcoming' ? 'selected' : '' %>>Próximo</option>
+                                    <option value="active" <%= tournament.status === 'active' ? 'selected' : '' %>>Activo</option>
+                                    <option value="completed" <%= tournament.status === 'completed' ? 'selected' : '' %>>Completado</option>
+                                    <option value="cancelled" <%= tournament.status === 'cancelled' ? 'selected' : '' %>>Cancelado</option>
+                                </select>
+                                <div class="etf-select-arrow">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div class="etf-select-focus-ring"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="etf-form-group">
+                            <!-- Empty space for layout balance -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Form Actions -->
+                <div class="etf-form-actions">
+                    <a href="/admin" class="etf-btn etf-btn-outline">
+                        <i class="fas fa-times"></i>
+                        <span>Cancelar</span>
+                    </a>
+                    <button type="submit" class="etf-btn etf-btn-primary">
+                        <i class="fas fa-save"></i>
+                        <span>Guardar Cambios</span>
+                        <div class="etf-btn-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Character counter for description
+    const descriptionTextarea = document.getElementById('etfDescription');
+    const descCounter = document.getElementById('etfDescCounter');
+    
+    if (descriptionTextarea && descCounter) {
+        descriptionTextarea.addEventListener('input', function() {
+            const length = this.value.length;
+            descCounter.textContent = length;
+            
+            if (length <= 500) {
+                descCounter.style.color = '#6b7280';
+            } else {
+                descCounter.style.color = '#ef4444';
+                this.value = this.value.substring(0, 500);
+                descCounter.textContent = '500';
+            }
+        });
+    }
+    
+    // File upload functionality
+    const fileUploadArea = document.getElementById('etfFileUploadArea');
+    const fileInput = document.getElementById('etfTournamentImage');
+    const filePreview = document.getElementById('etfFilePreview');
+    const previewImage = document.getElementById('etfPreviewImage');
+    const fileName = document.getElementById('etfFileName');
+    const removeFileBtn = document.getElementById('etfRemoveFile');
+    const removeImageBtn = document.getElementById('etfRemoveImageBtn');
+    const currentImageSection = document.querySelector('.etf-current-image-section');
+    
+    // Drag and drop
+    if (fileUploadArea) {
+        fileUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('etf-dragover');
+        });
+        
+        fileUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('etf-dragover');
+        });
+        
+        fileUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('etf-dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+    }
+    
+    // File input change
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                handleFileSelect(this.files[0]);
+            }
+        });
+    }
+    
+    // Remove new file
+    if (removeFileBtn) {
+        removeFileBtn.addEventListener('click', function() {
+            fileInput.value = '';
+            filePreview.style.display = 'none';
+            document.querySelector('.etf-file-upload-content').style.display = 'block';
+        });
+    }
+    
+    // Remove current image
+    if (removeImageBtn && currentImageSection) {
+        removeImageBtn.addEventListener('click', function() {
+            if (confirm('¿Estás seguro de que deseas eliminar la imagen actual?')) {
+                currentImageSection.style.display = 'none';
+                // Add hidden input to indicate image removal
+                const hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'remove_image';
+                hiddenInput.value = 'true';
+                document.getElementById('etfEditTournamentForm').appendChild(hiddenInput);
+            }
+        });
+    }
+    
+    function handleFileSelect(file) {
+        // Validate file
+        if (!file.type.match('image.*')) {
+            alert('Solo se permiten archivos de imagen.');
+            return;
+        }
+        
+        if (file.size > 5 * 1024 * 1024) {
+            alert('El archivo es demasiado grande. El tamaño máximo es 5MB.');
+            return;
+        }
+        
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImage.src = e.target.result;
+            fileName.textContent = file.name;
+            filePreview.style.display = 'flex';
+            document.querySelector('.etf-file-upload-content').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    // Form validation and submission
+    const editTournamentForm = document.getElementById('etfEditTournamentForm');
+    
+    if (editTournamentForm) {
+        editTournamentForm.addEventListener('submit', function(e) {
+            const entryFee = parseFloat(document.getElementById('etfEntryFee').value);
+            const prizePool = parseFloat(document.getElementById('etfPrizePool').value);
+            const submitBtn = this.querySelector('button[type="submit"]');
+            
+            // Validate prize pool vs entry fee
+            if (prizePool < entryFee) {
+                e.preventDefault();
+                alert('El premio total debe ser mayor o igual al costo de entrada.');
+                document.getElementById('etfPrizePool').focus();
+                return;
+            }
+            
+            // Show loading state
+            submitBtn.classList.add('etf-loading');
+            submitBtn.disabled = true;
+        });
+    }
+    
+    // Animate form sections on load
+    const formSections = document.querySelectorAll('.etf-form-section');
+    formSections.forEach((section, index) => {
+        section.style.opacity = '0';
+        section.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            section.style.transition = 'all 0.6s ease';
+            section.style.opacity = '1';
+            section.style.transform = 'translateY(0)';
+        }, index * 200 + 300);
+    });
+    
+    // Animate form groups
+    const formGroups = document.querySelectorAll('.etf-form-group');
+    formGroups.forEach((group, index) => {
+        group.style.opacity = '0';
+        group.style.transform = 'translateX(-20px)';
+        
+        setTimeout(() => {
+            group.style.transition = 'all 0.5s ease';
+            group.style.opacity = '1';
+            group.style.transform = 'translateX(0)';
+        }, index * 100 + 600);
+    });
+});
+</script>
+
+<%- include('partials/footer') %>

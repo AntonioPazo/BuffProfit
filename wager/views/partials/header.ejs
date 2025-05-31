@@ -5,76 +5,220 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="keywords" content="League of Legends, torneos, competiciones, juegos, eSports">
     <meta name="robots" content="index, follow">
-    <title>Buff Profit - <%= title %></title>
+    <title>Buff Profit - Header with EJS Conditionals</title>
+    <link rel="icon" type="image/png" href="/images/BuffProfit.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    
+
 </head>
 <body>
-    <nav class="navbar">
-        <a href="/" class="logo">
-            <img src="/images/BuffProfit.png" alt="Buff Profit">
-            <span>Buff Profit</span>
+    <nav class="bp-header-navbar">
+        <a href="/matchfinder" class="bp-header-logo-link">
+            <div class="bp-header-logo-container">
+                <img src="/images/BuffProfit.png" alt="Buff Profit" class="bp-header-logo-image">
+                <span class="bp-header-logo-text">Buff Profit</span>
+            </div>
         </a>
+        
+        <!-- Navegación principal -->
         <% if (username == 'admin') { %>
-        <a href="/tournament">Tournaments</a>
-        <a href="/matchfinder">Matchfinder</a>
-        <a href="/more">More</a>
-        <a href="/admin"> Panel administrador</a>
+        <div class="bp-header-nav-main">
+            <a href="/tournament" class="bp-header-nav-item">
+                <i class="fas fa-trophy"></i>
+                <span>Tournaments</span>
+            </a>
+            <a href="/matchfinder" class="bp-header-nav-item">
+                <i class="fas fa-search"></i>
+                <span>Matchfinder</span>
+            </a>
+            <a href="/more" class="bp-header-nav-item">
+                <i class="fas fa-ellipsis-h"></i>
+                <span>More</span>
+            </a>
+            <!-- Admin link (solo para admin) -->
+            <a href="/admin" class="bp-header-nav-item bp-header-admin-link">
+                <i class="fas fa-cog"></i>
+                <span>Panel administrador</span>
+            </a>
+        </div>
         <% } else { %>
-        <div class="nav-links">
-            <a href="/tournament">Tournaments</a>
-            <a href="/matchfinder">Matchfinder</a>
-            <a href="/more">More</a>
+        <div class="bp-header-nav-main">
+            <a href="/tournament" class="bp-header-nav-item">
+                <i class="fas fa-trophy"></i>
+                <span>Tournaments</span>
+            </a>
+            <a href="/matchfinder" class="bp-header-nav-item">
+                <i class="fas fa-search"></i>
+                <span>Matchfinder</span>
+            </a>
+            <a href="/more" class="bp-header-nav-item">
+                <i class="fas fa-ellipsis-h"></i>
+                <span>More</span>
+            </a>
         </div>
         <% } %>
+
         <% if (username) { %>
-            <div class="user-section">
-                <% if (typeof notificationCount !== 'undefined' && notificationCount > 0) { %>
-                <a href="/notifications" class="notification-icon">
+        <!-- Sección de usuario -->
+        <div class="bp-header-user-section">
+            <!-- Información de créditos -->
+            <div class="bp-header-credits-container">
+                <div class="bp-header-credits-display">
+                    <div class="bp-header-credits-icon">💰</div>
+                    <div class="bp-header-credits-info">
+                        <span class="bp-header-credits-amount" id="userCredits"><%= typeof userCreditos !== 'undefined' ? userCreditos.toFixed(2) : '0.00' %></span>
+                        <span class="bp-header-credits-label">Credits</span>
+                    </div>
+                </div>
+                <div class="bp-header-credits-actions">
+                    <a href="/add-credits" class="bp-header-btn-add-credits">
+                        <i class="fas fa-plus"></i>
+                        <span>Add Credits</span>
+                    </a>
+                    <a href="/withdraw-credits" class="bp-header-btn-withdraw">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>Withdraw</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Notificaciones -->
+            <% if (typeof notificationCount !== 'undefined' && notificationCount > 0) { %>
+            <div class="bp-header-notification-container">
+                <a href="/notifications" class="bp-header-notification-link">
                     <i class="fas fa-bell"></i>
-                    <span class="notification-count"><%= notificationCount %></span>
+                    <span class="bp-header-notification-badge"><%= notificationCount %></span>
+                </a>
+            </div>
+            <% } %>
+
+            <!-- Menú de usuario -->
+            <div class="bp-header-user-menu">
+                <button class="bp-header-user-trigger" onclick="toggleBPUserMenu()">
+                    <div class="bp-header-user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <span class="bp-header-username"><%= username %></span>
+                    <i class="fas fa-chevron-down bp-header-dropdown-arrow"></i>
+                </button>
+                <div class="bp-header-user-dropdown" id="bpUserDropdown">
+                    <a href="#" class="bp-header-dropdown-item bp-header-logout-item" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <% } else { %>
+        <!-- Botones de autenticación (para usuarios no logueados) -->
+        <div class="bp-header-auth-buttons">
+            <button class="bp-header-btn-signin" onclick="window.location.href='/login'">
+                <i class="fas fa-sign-in-alt"></i>
+                <span>SIGN IN</span>
+            </button>
+            <button class="bp-header-btn-join" onclick="window.location.href='/login'">
+                <i class="fas fa-user-plus"></i>
+                <span>JOIN FREE</span>
+            </button>
+        </div>
+        <% } %>
+
+        <!-- Botón móvil -->
+        <button class="bp-header-mobile-toggle" onclick="toggleBPMobileMenu()">
+            <span class="bp-header-hamburger-line"></span>
+            <span class="bp-header-hamburger-line"></span>
+            <span class="bp-header-hamburger-line"></span>
+        </button>
+    </nav>
+
+    <!-- Menú móvil overlay -->
+    <div class="bp-header-mobile-overlay" id="bpMobileOverlay">
+        <div class="bp-header-mobile-menu">
+            <div class="bp-header-mobile-header">
+                <div class="bp-header-logo-container">
+                    <img src="/images/BuffProfit.png" alt="Buff Profit" class="bp-header-logo-image">
+                    <span class="bp-header-logo-text">Buff Profit</span>
+                </div>
+                <button class="bp-header-mobile-close" onclick="toggleBPMobileMenu()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="bp-header-mobile-nav">
+                <a href="/tournament" class="bp-header-mobile-nav-item">
+                    <i class="fas fa-trophy"></i>
+                    <span>Tournaments</span>
+                </a>
+                <a href="/matchfinder" class="bp-header-mobile-nav-item">
+                    <i class="fas fa-search"></i>
+                    <span>Matchfinder</span>
+                </a>
+                <a href="/more" class="bp-header-mobile-nav-item">
+                    <i class="fas fa-ellipsis-h"></i>
+                    <span>More</span>
+                </a>
+                <% if (username == 'admin') { %>
+                <a href="/admin" class="bp-header-mobile-nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>Panel administrador</span>
                 </a>
                 <% } %>
-                <span class="username"><%= username %></span>
-                <button class="btn btn-outline" onclick="logout()">LOGOUT</button>
             </div>
-        <% } else { %>
-            <div class="auth-buttons">
-                <button class="btn btn-outline" onclick="window.location.href='/login'">SIGN IN</button>
-                <button class="btn btn-primary" onclick="window.location.href='/login'">JOIN FREE</button>
-            </div>
-        <% } %>
-    </nav>
-    
-    <style>
-    /* Estilos para el icono de notificaciones */
-    .notification-icon {
-        position: relative;
-        margin-right: 15px;
-        color: #fff;
-        font-size: 1.2rem;
-    }
-    
-    .notification-count {
-        position: absolute;
-        top: -8px;
-        right: -8px;
-        background-color: #ff4d4d;
-        color: white;
-        font-size: 0.7rem;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    </style>
-    
+        </div>
+    </div>
+
+
     <script>
-        function logout() {
-            localStorage.removeItem("token");
-            window.location.href = "/";
+        function toggleBPUserMenu() {
+            const dropdown = document.getElementById('bpUserDropdown');
+            const trigger = document.querySelector('.bp-header-user-trigger');
+            
+            dropdown.classList.toggle('show');
+            trigger.classList.toggle('active');
         }
+
+        function toggleBPMobileMenu() {
+            const overlay = document.getElementById('bpMobileOverlay');
+            overlay.classList.toggle('show');
+        }
+
+        function logout() {
+            // Aquí iría la lógica de logout
+            console.log('Logging out...');
+            window.location.href = "/logout";
+        }
+
+        // Cerrar dropdown al hacer click fuera
+        document.addEventListener('click', function(event) {
+            const userMenu = document.querySelector('.bp-header-user-menu');
+            const dropdown = document.getElementById('bpUserDropdown');
+            const trigger = document.querySelector('.bp-header-user-trigger');
+            
+            if (userMenu && !userMenu.contains(event.target)) {
+                dropdown.classList.remove('show');
+                trigger.classList.remove('active');
+            }
+        });
+
+        // Cerrar menú móvil al hacer click en el overlay
+        document.getElementById('bpMobileOverlay').addEventListener('click', function(event) {
+            if (event.target === this) {
+                toggleBPMobileMenu();
+            }
+        });
+
+        // Animación suave al cargar
+        window.addEventListener('load', function() {
+            document.querySelector('.bp-header-navbar').style.opacity = '0';
+            document.querySelector('.bp-header-navbar').style.transform = 'translateY(-20px)';
+            
+            setTimeout(() => {
+                document.querySelector('.bp-header-navbar').style.transition = 'all 0.5s ease';
+                document.querySelector('.bp-header-navbar').style.opacity = '1';
+                document.querySelector('.bp-header-navbar').style.transform = 'translateY(0)';
+            }, 100);
+        });
     </script>
+</body>
+</html>

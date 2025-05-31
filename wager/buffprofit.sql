@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS user (
     summoner VARCHAR(255),
     id_summoner VARCHAR(255) UNIQUE,
     reputation INT DEFAULT 0,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    creditos FLOAT DEFAULT 100.00
 );
 
 -- Crear la tabla game con campos adicionales
@@ -29,31 +30,21 @@ CREATE TABLE IF NOT EXISTS game (
     region ENUM('euw', 'eune', 'na', 'kr', 'japan', 'br', 'lan', 'las', 'oce', 'ru', 'tr') NOT NULL,
     skill_level ENUM('Unranked', 'Iron', 'Bronze', 'Silver', 'Gold', 'Platinum', 'Emerald', 'Diamond', 'Master', 'Grand Master', 'Challenger') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    winner VARCHAR(255) NULL,
+    reported_by_blue BOOLEAN DEFAULT FALSE,
+    reported_by_red BOOLEAN DEFAULT FALSE,
+    blue_reported_winner VARCHAR(255) NULL,
+    red_reported_winner VARCHAR(255) NULL,
+    blue_proof_images TEXT NULL,
+    red_proof_images TEXT NULL,
+    dispute BOOLEAN DEFAULT FALSE,
+    blue_rated_red BOOLEAN DEFAULT FALSE,
+    red_rated_blue BOOLEAN DEFAULT FALSE,
+    credits_transferred BOOLEAN DEFAULT FALSE,
     FOREIGN KEY (id_summoner_blue) REFERENCES user(id_summoner),
     FOREIGN KEY (id_summoner_red) REFERENCES user(id_summoner)
 );
 
--- Actualizar la tabla game para añadir campos para el reporte de resultados
-ALTER TABLE game
-ADD COLUMN winner VARCHAR(255) NULL,
-ADD COLUMN reported_by_blue BOOLEAN DEFAULT FALSE,
-ADD COLUMN reported_by_red BOOLEAN DEFAULT FALSE,
-ADD COLUMN blue_reported_winner VARCHAR(255) NULL,
-ADD COLUMN red_reported_winner VARCHAR(255) NULL,
-ADD COLUMN blue_proof_images TEXT NULL,
-ADD COLUMN red_proof_images TEXT NULL,
-ADD COLUMN dispute BOOLEAN DEFAULT FALSE;
-
--- Añadir columna creditos a la tabla user con formato float (0.00)
-ALTER TABLE user
-ADD COLUMN creditos FLOAT DEFAULT 100.00;
-
--- Añadir columnas para el sistema de reputación en la tabla game
-ALTER TABLE game
-ADD COLUMN blue_rated BOOLEAN DEFAULT FALSE,
-ADD COLUMN red_rated BOOLEAN DEFAULT FALSE,
-ADD COLUMN blue_rating_to_red INT NULL,
-ADD COLUMN red_rating_to_blue INT NULL;
 
 -- Usuarios de ejemplo 
 
@@ -85,31 +76,6 @@ CREATE TABLE IF NOT EXISTS tournament (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Crear tabla para participantes de torneos
-CREATE TABLE IF NOT EXISTS tournament_participant (
-  id_participant INT AUTO_INCREMENT PRIMARY KEY,
-  id_tournament INT NOT NULL,
-  id_summoner VARCHAR(255) NOT NULL,
-  registration_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (id_tournament) REFERENCES tournament(id_tournament) ON DELETE CASCADE,
-  FOREIGN KEY (id_summoner) REFERENCES user(id_summoner) ON DELETE CASCADE
-);
-
--- Crear tabla para partidas de torneos
-CREATE TABLE IF NOT EXISTS tournament_match (
-  id_tournament_match INT AUTO_INCREMENT PRIMARY KEY,
-  id_tournament INT NOT NULL,
-  id_summoner_blue VARCHAR(255) NOT NULL,
-  id_summoner_red VARCHAR(255) NOT NULL,
-  round INT NOT NULL,
-  match_number INT NOT NULL,
-  winner INT,
-  match_date TIMESTAMP,
-  status VARCHAR(50) DEFAULT 'pending',
-  FOREIGN KEY (id_tournament) REFERENCES tournament(id_tournament) ON DELETE CASCADE,
-  FOREIGN KEY (id_summoner_blue) REFERENCES user(id_summoner) ON DELETE CASCADE,
-  FOREIGN KEY (id_summoner_red) REFERENCES user(id_summoner) ON DELETE CASCADE
-);
 
 -- Crear tabla para equipos
 CREATE TABLE IF NOT EXISTS team (
@@ -145,12 +111,6 @@ CREATE TABLE IF NOT EXISTS tournament_team (
   FOREIGN KEY (id_team) REFERENCES team(id_team) ON DELETE CASCADE
 );
 
--- Modificar la tabla tournament_match para soportar equipos
-ALTER TABLE tournament_match
-ADD COLUMN id_team_blue INT NULL,
-ADD COLUMN id_team_red INT NULL,
-ADD FOREIGN KEY (id_team_blue) REFERENCES team(id_team) ON DELETE SET NULL,
-ADD FOREIGN KEY (id_team_red) REFERENCES team(id_team) ON DELETE SET NULL;
 
 CREATE TABLE IF NOT EXISTS team_invitation (
   id_invitation INT AUTO_INCREMENT PRIMARY KEY,
@@ -175,4 +135,25 @@ CREATE TABLE IF NOT EXISTS notification (
   is_read BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (id_summoner) REFERENCES user(id_summoner) ON DELETE CASCADE
+);
+
+-- === añadido
+
+
+-- Crear tabla para transacciones PayPal
+CREATE TABLE IF NOT EXISTS transactions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    type ENUM('credit_purchase', 'match_entry', 'match_win', 'refund') NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    credits INT NOT NULL,
+    paypal_order_id VARCHAR(255),
+    status ENUM('pending', 'completed', 'failed', 'refunded') DEFAULT 'pending',
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_username (username),
+    INDEX idx_type (type),
+    INDEX idx_status (status),
+    INDEX idx_created_at (created_at)
 );

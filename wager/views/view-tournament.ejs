@@ -1,0 +1,417 @@
+<%- include('partials/header', { title: 'View Tournament', username: username }) %>
+
+<div class="vtd-main-container">
+    <!-- Background Effects -->
+    <div class="vtd-bg-effects">
+        <div class="vtd-gradient-orb-1"></div>
+        <div class="vtd-gradient-orb-2"></div>
+        <div class="vtd-gradient-orb-3"></div>
+    </div>
+    
+    <div class="vtd-content-wrapper">
+        <!-- Header Navigation -->
+        <div class="vtd-top-navigation">
+            <div class="vtd-nav-content">
+                <h1 class="vtd-page-title">DETALLES DEL TORNEO</h1>
+                <a href="/admin" class="vtd-back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Volver al Panel Admin</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Tournament Details Container -->
+        <div class="vtd-tournament-container">
+            <!-- Tournament Header -->
+            <div class="vtd-tournament-header">
+                <div class="vtd-tournament-info">
+                    <div class="vtd-tournament-title-section">
+                        <h2 class="vtd-tournament-name"><%= tournament.name %></h2>
+                        <div class="vtd-tournament-status">
+                            <span class="vtd-status-badge vtd-status-<%= tournament.status.toLowerCase() %>">
+                                <i class="fas fa-circle"></i>
+                                <%= tournament.status %>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="vtd-tournament-meta">
+                        <div class="vtd-meta-item">
+                            <i class="fas fa-calendar-alt"></i>
+                            <span>Fecha: <%= new Date(tournament.start_date).toLocaleString() %></span>
+                        </div>
+                        <div class="vtd-meta-item">
+                            <i class="fas fa-users"></i>
+                            <span>Formato: <%= tournament.team_size %> - <%= tournament.format %></span>
+                        </div>
+                        <div class="vtd-meta-item">
+                            <i class="fas fa-trophy"></i>
+                            <span>Participantes: <%= tournament.current_participants %>/<%= tournament.max_participants %></span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="vtd-tournament-image-section">
+                    <% if (tournament.image_path) { %>
+                        <div class="vtd-tournament-image-container">
+                            <img src="<%= tournament.image_path %>" alt="<%= tournament.name %>" class="vtd-tournament-image">
+                            <div class="vtd-image-overlay"></div>
+                        </div>
+                    <% } else { %>
+                        <div class="vtd-tournament-placeholder">
+                            <div class="vtd-placeholder-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <span class="vtd-placeholder-text">Sin imagen</span>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+            
+            <!-- Tournament Details Grid -->
+            <div class="vtd-details-grid">
+                <!-- General Information Card -->
+                <div class="vtd-details-card">
+                    <div class="vtd-card-header">
+                        <div class="vtd-card-title">
+                            <i class="fas fa-info-circle"></i>
+                            <h3>Información General</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="vtd-card-content">
+                        <div class="vtd-info-grid">
+                            <div class="vtd-info-item">
+                                <div class="vtd-info-label">
+                                    <i class="fas fa-ticket-alt"></i>
+                                    Costo de Entrada
+                                </div>
+                                <div class="vtd-info-value vtd-highlight">
+                                    <%= tournament.entry_fee %> Credits
+                                </div>
+                            </div>
+                            
+                            <div class="vtd-info-item">
+                                <div class="vtd-info-label">
+                                    <i class="fas fa-trophy"></i>
+                                    Premio Total
+                                </div>
+                                <div class="vtd-info-value vtd-highlight">
+                                    <%= tournament.prize_pool %> Credits
+                                </div>
+                            </div>
+                            
+                            <div class="vtd-info-item">
+                                <div class="vtd-info-label">
+                                    <i class="fas fa-globe"></i>
+                                    Región
+                                </div>
+                                <div class="vtd-info-value">
+                                    <%= tournament.region.toUpperCase() %>
+                                </div>
+                            </div>
+                            
+                            <div class="vtd-info-item">
+                                <div class="vtd-info-label">
+                                    <i class="fas fa-map"></i>
+                                    Mapa
+                                </div>
+                                <div class="vtd-info-value">
+                                    <%= tournament.map %>
+                                </div>
+                            </div>
+                            
+                            <div class="vtd-info-item">
+                                <div class="vtd-info-label">
+                                    <i class="fas fa-star"></i>
+                                    Nivel de Habilidad
+                                </div>
+                                <div class="vtd-info-value">
+                                    <%= tournament.skill_level %>
+                                </div>
+                            </div>
+                            
+                            <div class="vtd-info-item">
+                                <div class="vtd-info-label">
+                                    <i class="fas fa-user-crown"></i>
+                                    Creado por
+                                </div>
+                                <div class="vtd-info-value">
+                                    <%= tournament.created_by %>
+                                </div>
+                            </div>
+                            
+                            <div class="vtd-info-item">
+                                <div class="vtd-info-label">
+                                    <i class="fas fa-clock"></i>
+                                    Fecha de Creación
+                                </div>
+                                <div class="vtd-info-value">
+                                    <%= new Date(tournament.created_at).toLocaleString() %>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Description Card -->
+                <div class="vtd-details-card">
+                    <div class="vtd-card-header">
+                        <div class="vtd-card-title">
+                            <i class="fas fa-align-left"></i>
+                            <h3>Descripción del Torneo</h3>
+                        </div>
+                    </div>
+                    
+                    <div class="vtd-card-content">
+                        <div class="vtd-description-content">
+                            <% if (tournament.description) { %>
+                                <p class="vtd-description-text"><%= tournament.description %></p>
+                            <% } else { %>
+                                <div class="vtd-no-description">
+                                    <i class="fas fa-file-alt"></i>
+                                    <span>Este torneo no tiene descripción disponible.</span>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Participants Section -->
+            <div class="vtd-participants-section">
+                <div class="vtd-participants-header">
+                    <div class="vtd-participants-title">
+                        <i class="fas fa-users"></i>
+                        <h3>Equipos Participantes</h3>
+                        <span class="vtd-participants-count">
+                            <%= participants.length %>/<%= tournament.max_participants %>
+                        </span>
+                    </div>
+                    
+                    <div class="vtd-participants-progress">
+                        <div class="vtd-progress-bar">
+                            <div class="vtd-progress-fill" style="width: <%= (participants.length / tournament.max_participants) * 100 %>%"></div>
+                        </div>
+                        <span class="vtd-progress-text">
+                            <%= Math.round((participants.length / tournament.max_participants) * 100) %>% completo
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="vtd-participants-card">
+                    <% if (participants.length > 0) { %>
+                        <div class="vtd-participants-table-container">
+                            <table class="vtd-participants-table">
+                                <thead>
+                                    <tr>
+                                        <th class="vtd-th-position">#</th>
+                                        <th class="vtd-th-team">Equipo</th>
+                                        <th class="vtd-th-tag">Tag</th>
+                                        <th class="vtd-th-date">Fecha de Inscripción</th>
+                                        <th class="vtd-th-actions">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% participants.forEach((participant, index) => { %>
+                                        <tr class="vtd-participant-row">
+                                            <td class="vtd-td-position">
+                                                <div class="vtd-position-badge">
+                                                    <%= index + 1 %>
+                                                </div>
+                                            </td>
+                                            <td class="vtd-td-team">
+                                                <div class="vtd-team-info">
+                                                    <div class="vtd-team-logo-container">
+                                                        <% if (participant.logo_path) { %>
+                                                            <img src="<%= participant.logo_path %>" alt="<%= participant.team_name %>" class="vtd-team-logo">
+                                                        <% } else { %>
+                                                            <div class="vtd-team-logo-placeholder">
+                                                                <%= participant.team_tag.substring(0, 2).toUpperCase() %>
+                                                            </div>
+                                                        <% } %>
+                                                    </div>
+                                                    <div class="vtd-team-details">
+                                                        <span class="vtd-team-name"><%= participant.team_name %></span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="vtd-td-tag">
+                                                <span class="vtd-team-tag-badge">
+                                                    <%= participant.team_tag %>
+                                                </span>
+                                            </td>
+                                            <td class="vtd-td-date">
+                                                <div class="vtd-date-info">
+                                                    <i class="fas fa-calendar"></i>
+                                                    <span><%= new Date(participant.registration_date).toLocaleString() %></span>
+                                                </div>
+                                            </td>
+                                            <td class="vtd-td-actions">
+                                                <div class="vtd-action-buttons">
+                                                    <a href="/team/<%= participant.id_team %>" class="vtd-action-btn vtd-view-btn" title="Ver equipo">
+                                                        <i class="fas fa-eye"></i>
+                                                        <span>Ver</span>
+                                                    </a>
+                                                    <button class="vtd-action-btn vtd-remove-btn" 
+                                                            data-team-id="<%= participant.id_team %>" 
+                                                            data-tournament-id="<%= tournament.id_tournament %>"
+                                                            data-team-name="<%= participant.team_name %>"
+                                                            title="Eliminar del torneo">
+                                                        <i class="fas fa-trash-alt"></i>
+                                                        <span>Eliminar</span>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <div class="vtd-empty-participants">
+                            <div class="vtd-empty-icon">
+                                <i class="fas fa-users-slash"></i>
+                            </div>
+                            <h4>No hay equipos inscritos</h4>
+                            <p>Este torneo aún no tiene equipos participantes.</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Remove Team Modal -->
+<div id="vtdRemoveTeamModal" class="vtd-modal">
+    <div class="vtd-modal-overlay"></div>
+    <div class="vtd-modal-container">
+        <div class="vtd-modal-header">
+            <div class="vtd-modal-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Eliminar Equipo del Torneo</h3>
+            </div>
+            <button class="vtd-modal-close" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="vtd-modal-body">
+            <div class="vtd-warning-content">
+                <div class="vtd-warning-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="vtd-warning-text">
+                    <p class="vtd-warning-main">¿Estás seguro de que deseas eliminar el equipo <strong id="vtdTeamNameDisplay"></strong> del torneo?</p>
+                    <p class="vtd-warning-sub">Esta acción no se puede deshacer y el equipo perderá su lugar en el torneo.</p>
+                </div>
+            </div>
+            
+            <form id="vtdRemoveTeamForm" action="/remove-team-from-tournament" method="POST" class="vtd-modal-form">
+                <input type="hidden" id="vtdTeamId" name="team_id" value="">
+                <input type="hidden" id="vtdTournamentId" name="tournament_id" value="">
+                
+                <div class="vtd-modal-actions">
+                    <button type="button" class="vtd-btn vtd-btn-outline vtd-close-modal">
+                        <i class="fas fa-times"></i>
+                        <span>Cancelar</span>
+                    </button>
+                    <button type="submit" class="vtd-btn vtd-btn-danger">
+                        <i class="fas fa-trash-alt"></i>
+                        <span>Eliminar Equipo</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal functionality
+    const modal = document.getElementById('vtdRemoveTeamModal');
+    const modalClose = document.querySelector('.vtd-modal-close');
+    const modalCloseBtn = document.querySelector('.vtd-close-modal');
+    const removeBtns = document.querySelectorAll('.vtd-remove-btn');
+    const teamNameDisplay = document.getElementById('vtdTeamNameDisplay');
+    const teamIdInput = document.getElementById('vtdTeamId');
+    const tournamentIdInput = document.getElementById('vtdTournamentId');
+    
+    function openModal(teamId, tournamentId, teamName) {
+        teamIdInput.value = teamId;
+        tournamentIdInput.value = tournamentId;
+        teamNameDisplay.textContent = teamName;
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+    
+    function closeModal() {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+    
+    // Setup remove buttons
+    removeBtns.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const teamId = this.getAttribute('data-team-id');
+            const tournamentId = this.getAttribute('data-tournament-id');
+            const teamName = this.getAttribute('data-team-name');
+            openModal(teamId, tournamentId, teamName);
+        });
+    });
+    
+    // Setup close buttons
+    if (modalClose) {
+        modalClose.addEventListener('click', closeModal);
+    }
+    
+    if (modalCloseBtn) {
+        modalCloseBtn.addEventListener('click', closeModal);
+    }
+    
+    // Close on overlay click
+    modal.addEventListener('click', function(e) {
+        if (e.target === this || e.target.classList.contains('vtd-modal-overlay')) {
+            closeModal();
+        }
+    });
+    
+    // Close on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.style.display === 'block') {
+            closeModal();
+        }
+    });
+    
+    // Animate elements on load
+    const cards = document.querySelectorAll('.vtd-details-card, .vtd-participants-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 200 + 300);
+    });
+    
+    // Animate table rows
+    const rows = document.querySelectorAll('.vtd-participant-row');
+    rows.forEach((row, index) => {
+        row.style.opacity = '0';
+        row.style.transform = 'translateX(-20px)';
+        
+        setTimeout(() => {
+            row.style.transition = 'all 0.5s ease';
+            row.style.opacity = '1';
+            row.style.transform = 'translateX(0)';
+        }, index * 100 + 800);
+    });
+});
+</script>
+
+<%- include('partials/footer') %>

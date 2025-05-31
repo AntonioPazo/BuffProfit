@@ -1,116 +1,399 @@
 <%- include('partials/header', { title: 'Gaming Community', username: username }) %>
 
-<section class="news-section">
-    <h1 style="margin-bottom: 2rem;">COMMUNITY NEWS</h1>
-    <article class="news-card">
-        <img src="/images/league_of_legends-icon.png" alt="Game News" class="news-image">
-        <div class="news-content">
-            <div class="date">Feb 20</div>
-            <h2 class="news-title">New map is the best in history?</h2>
-            <p class="news-description">In the latest installment of the game franchise, players are lauding the new multiplayer map as one of the most impressive...</p>
-            <a href="#" class="read-more">Read More</a>
+<div class="mre-more-container">
+    <!-- News Section -->
+    <section class="mre-news-section">
+        <div class="mre-section-header">
+            <h1 class="mre-section-title">COMMUNITY NEWS</h1>
+            <p class="mre-section-subtitle">Stay updated with the latest gaming news and community highlights</p>
         </div>
-    </article>
-    <article class="news-card">
-        <img src="/images/league_of_legends-icon.png" alt="Season Update" class="news-image">
-        <div class="news-content">
-            <div class="date">Feb 20</div>
-            <h2 class="news-title">Season 2 Reloaded</h2>
-            <p class="news-description">This mid-season update introduces a wealth of new content, including new multiplayer maps and exciting features...</p>
-            <a href="#" class="read-more">Read More</a>
+        
+        <div class="mre-news-grid">
+            <article class="mre-news-card">
+                <div class="mre-news-image-container">
+                    <img src="/images/league_of_legends-icon.png" alt="Game News" class="mre-news-image">
+                    <div class="mre-news-overlay">
+                        <div class="mre-news-category">GAME UPDATE</div>
+                    </div>
+                </div>
+                <div class="mre-news-content">
+                    <div class="mre-news-meta">
+                        <div class="mre-news-date">
+                            <i class="fas fa-calendar"></i>
+                            <span>Feb 20</span>
+                        </div>
+                        <div class="mre-news-reading-time">
+                            <i class="fas fa-clock"></i>
+                            <span>3 min read</span>
+                        </div>
+                    </div>
+                    <h2 class="mre-news-title">New map is the best in history?</h2>
+                    <p class="mre-news-description">In the latest installment of the game franchise, players are lauding the new multiplayer map as one of the most impressive and strategically complex environments ever created...</p>
+                    <div class="mre-news-actions">
+                        <a href="#" class="mre-read-more-btn">
+                            <span>Read More</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <div class="mre-news-stats">
+                            <span class="mre-stat-item">
+                                <i class="fas fa-eye"></i>
+                                1.2k
+                            </span>
+                            <span class="mre-stat-item">
+                                <i class="fas fa-heart"></i>
+                                89
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="mre-news-card">
+                <div class="mre-news-image-container">
+                    <img src="/images/league_of_legends-icon.png" alt="Season Update" class="mre-news-image">
+                    <div class="mre-news-overlay">
+                        <div class="mre-news-category">SEASON UPDATE</div>
+                    </div>
+                </div>
+                <div class="mre-news-content">
+                    <div class="mre-news-meta">
+                        <div class="mre-news-date">
+                            <i class="fas fa-calendar"></i>
+                            <span>Feb 20</span>
+                        </div>
+                        <div class="mre-news-reading-time">
+                            <i class="fas fa-clock"></i>
+                            <span>5 min read</span>
+                        </div>
+                    </div>
+                    <h2 class="mre-news-title">Season 2 Reloaded</h2>
+                    <p class="mre-news-description">This mid-season update introduces a wealth of new content, including new multiplayer maps, exciting features, and game-changing mechanics that will revolutionize your gameplay experience...</p>
+                    <div class="mre-news-actions">
+                        <a href="#" class="mre-read-more-btn">
+                            <span>Read More</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <div class="mre-news-stats">
+                            <span class="mre-stat-item">
+                                <i class="fas fa-eye"></i>
+                                2.1k
+                            </span>
+                            <span class="mre-stat-item">
+                                <i class="fas fa-heart"></i>
+                                156
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </article>
+
+            <article class="mre-news-card">
+                <div class="mre-news-image-container">
+                    <img src="/images/league_of_legends-icon.png" alt="Meta Update" class="mre-news-image">
+                    <div class="mre-news-overlay">
+                        <div class="mre-news-category">META GUIDE</div>
+                    </div>
+                </div>
+                <div class="mre-news-content">
+                    <div class="mre-news-meta">
+                        <div class="mre-news-date">
+                            <i class="fas fa-calendar"></i>
+                            <span>Feb 18</span>
+                        </div>
+                        <div class="mre-news-reading-time">
+                            <i class="fas fa-clock"></i>
+                            <span>7 min read</span>
+                        </div>
+                    </div>
+                    <h2 class="mre-news-title">Ranked Play Meta Classes</h2>
+                    <p class="mre-news-description">In competitive Ranked Play, success hinges on more than just raw skill—it's about mastering the right classes to complement your team composition and counter your opponents effectively...</p>
+                    <div class="mre-news-actions">
+                        <a href="#" class="mre-read-more-btn">
+                            <span>Read More</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </a>
+                        <div class="mre-news-stats">
+                            <span class="mre-stat-item">
+                                <i class="fas fa-eye"></i>
+                                3.4k
+                            </span>
+                            <span class="mre-stat-item">
+                                <i class="fas fa-heart"></i>
+                                234
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </article>
         </div>
-    </article>
-    <article class="news-card">
-        <img src="/images/league_of_legends-icon.png" alt="Meta Update" class="news-image">
-        <div class="news-content">
-            <div class="date">Feb 18</div>
-            <h2 class="news-title">Ranked Play Meta Classes</h2>
-            <p class="news-description">In competitive Ranked Play, success hinges on more than just raw skill—it's about mastering the right classes to complement yo...</p>
-            <a href="#" class="read-more">Read More</a>
+    </section>
+
+    <!-- Winners Carousel Section -->
+    <section class="mre-winners-section">
+        <div class="mre-section-header">
+            <h1 class="mre-section-title">WINNERS BIG PRIZES</h1>
+            <p class="mre-section-subtitle">Celebrating our champions and their incredible achievements</p>
         </div>
-    </article>
-</section>
-<div class="carousel-container">
-    <h1 class="carousel-title">WINNERS BIG PRIZES</h1>
-    <div class="carousel">
-        <div class="carousel-slides">
-            <div class="slide active">
-                <img src="/images/winner1.jpg" alt="Tournament Winner 1">
-                <div class="slide-caption">
-                    <h3>Grand Tournament Champion</h3>
-                    <p>$10,000 Prize Pool Winner</p>
+        
+        <div class="mre-carousel-container">
+            <div class="mre-carousel">
+                <div class="mre-carousel-slides">
+                    <div class="mre-slide active">
+                        <div class="mre-slide-image-container">
+                            <img src="/images/winner1.jpg" alt="Tournament Winner 1" class="mre-slide-image">
+                            <div class="mre-slide-overlay"></div>
+                        </div>
+                        <div class="mre-slide-content">
+                            <div class="mre-slide-badge">
+                                <i class="fas fa-crown"></i>
+                                <span>CHAMPION</span>
+                            </div>
+                            <h3 class="mre-slide-title">Grand Tournament Champion</h3>
+                            <p class="mre-slide-description">Dominated the competition with exceptional skill and strategy</p>
+                            <div class="mre-slide-prize">
+                                <i class="fas fa-trophy"></i>
+                                <span>$10,000 Prize Pool Winner</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mre-slide">
+                        <div class="mre-slide-image-container">
+                            <img src="/images/winner2.avif" alt="Tournament Winner 2" class="mre-slide-image">
+                            <div class="mre-slide-overlay"></div>
+                        </div>
+                        <div class="mre-slide-content">
+                            <div class="mre-slide-badge">
+                                <i class="fas fa-users"></i>
+                                <span>TEAM VICTORY</span>
+                            </div>
+                            <h3 class="mre-slide-title">League Masters Finals</h3>
+                            <p class="mre-slide-description">Perfect teamwork and coordination led to victory</p>
+                            <div class="mre-slide-prize">
+                                <i class="fas fa-trophy"></i>
+                                <span>Team Victory - $15,000 Prize</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mre-slide">
+                        <div class="mre-slide-image-container">
+                            <img src="/images/winner3.avif" alt="Tournament Winner 3" class="mre-slide-image">
+                            <div class="mre-slide-overlay"></div>
+                        </div>
+                        <div class="mre-slide-content">
+                            <div class="mre-slide-badge">
+                                <i class="fas fa-star"></i>
+                                <span>RISING STAR</span>
+                            </div>
+                            <h3 class="mre-slide-title">Solo Queue Champion</h3>
+                            <p class="mre-slide-description">Outstanding individual performance and game sense</p>
+                            <div class="mre-slide-prize">
+                                <i class="fas fa-trophy"></i>
+                                <span>Rising Star - $5,000 Prize</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mre-slide">
+                        <div class="mre-slide-image-container">
+                            <img src="/images/winner4.jpeg" alt="Tournament Winner 4" class="mre-slide-image">
+                            <div class="mre-slide-overlay"></div>
+                        </div>
+                        <div class="mre-slide-content">
+                            <div class="mre-slide-badge">
+                                <i class="fas fa-medal"></i>
+                                <span>MVP</span>
+                            </div>
+                            <h3 class="mre-slide-title">Regional Finals MVP</h3>
+                            <p class="mre-slide-description">Most Valuable Player with game-changing performances</p>
+                            <div class="mre-slide-prize">
+                                <i class="fas fa-trophy"></i>
+                                <span>Championship Title & $8,000 Prize</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="mre-carousel-control mre-prev">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+                <button class="mre-carousel-control mre-next">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                
+                <div class="mre-carousel-indicators">
+                    <span class="mre-indicator active" data-index="0"></span>
+                    <span class="mre-indicator" data-index="1"></span>
+                    <span class="mre-indicator" data-index="2"></span>
+                    <span class="mre-indicator" data-index="3"></span>
                 </div>
             </div>
-            <div class="slide">
-                <img src="/images/winner2.avif" alt="Tournament Winner 2">
-                <div class="slide-caption">
-                    <h3>League Masters Finals</h3>
-                    <p>Team Victory - $15,000 Prize</p>
-                </div>
-            </div>
-            <div class="slide">
-                <img src="/images/winner3.avif" alt="Tournament Winner 3">
-                <div class="slide-caption">
-                    <h3>Solo Queue Champion</h3>
-                    <p>Rising Star - $5,000 Prize</p>
-                </div>
-            </div>
-            <div class="slide">
-                <img src="/images/winner4.jpeg" alt="Tournament Winner 4">
-                <div class="slide-caption">
-                    <h3>Regional Finals MVP</h3>
-                    <p>Championship Title & $8,000 Prize</p>
+        </div>
+    </section>
+
+    <!-- Location Section -->
+    <section class="mre-location-section">
+        <div class="mre-section-header">
+            <h1 class="mre-section-title">OUR LOCATION</h1>
+            <p class="mre-section-subtitle">Visit us at our gaming headquarters in Sevilla</p>
+        </div>
+        
+        <div class="mre-map-container">
+            <div class="mre-map-wrapper">
+                <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3169.280400791713!2d-5.932571524283221!3d37.40684677208043!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd1269414d8c133d%3A0x498ce95cde9f9931!2sILERNA%20Sevilla!5e0!3m2!1ses!2ses!4v1741265825727!5m2!1ses!2ses" 
+                    class="mre-map-iframe"
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+                <div class="mre-map-overlay">
+                    <div class="mre-location-info">
+                        <div class="mre-location-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                        </div>
+                        <div class="mre-location-details">
+                            <h3>ILERNA Sevilla</h3>
+                            <p>Gaming Community Hub</p>
+                            <div class="mre-location-address">
+                                <i class="fas fa-location-arrow"></i>
+                                <span>Sevilla, Spain</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        <button class="carousel-control prev"><</button>
-        <button class="carousel-control next">></button>
-        <div class="carousel-indicators">
-            <span class="indicator active" data-index="0"></span>
-            <span class="indicator" data-index="1"></span>
-            <span class="indicator" data-index="2"></span>
-            <span class="indicator" data-index="3"></span>
-        </div>
-    </div>
-</div>
-<h1 style="text-align:center; margin: 20px;">Ubication</h1>
-<div class="map-container">
-    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3169.280400791713!2d-5.932571524283221!3d37.40684677208043!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd1269414d8c133d%3A0x498ce95cde9f9931!2sILERNA%20Sevilla!5e0!3m2!1ses!2ses!4v1741265825727!5m2!1ses!2ses" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </section>
 </div>
 
-<%- include('partials/footer') %>
-<script src="/js/client.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const slides = document.querySelectorAll('.slide');
-        const indicators = document.querySelectorAll('.indicator');
-        const prevBtn = document.querySelector('.prev');
-        const nextBtn = document.querySelector('.next');
-        let currentIndex = 0;
-        function showSlide(index) {
-            if (index < 0) index = slides.length - 1;
-            if (index >= slides.length) index = 0;
-            slides.forEach(slide => slide.classList.remove('active'));
-            indicators.forEach(indicator => indicator.classList.remove('active'));
-            slides[index].classList.add('active');
-            indicators[index].classList.add('active');
-            currentIndex = index;
-        }
-        prevBtn.addEventListener('click', () => {
-            showSlide(currentIndex - 1);
-        });
-        nextBtn.addEventListener('click', () => {
-            showSlide(currentIndex + 1);
-        });
-        indicators.forEach(indicator => {
-            indicator.addEventListener('click', function() {
-                const index = parseInt(this.getAttribute('data-index'));
-                showSlide(index);
-            });
-        });
-        // Auto-advance slides every 5 seconds
-        setInterval(() => {
-            showSlide(currentIndex + 1);
-        }, 5000);
+document.addEventListener('DOMContentLoaded', function() {
+    // Carousel functionality
+    const slides = document.querySelectorAll('.mre-slide');
+    const indicators = document.querySelectorAll('.mre-indicator');
+    const prevBtn = document.querySelector('.mre-prev');
+    const nextBtn = document.querySelector('.mre-next');
+    let currentIndex = 0;
+    let autoSlideInterval;
+
+    function showSlide(index) {
+        if (index < 0) index = slides.length - 1;
+        if (index >= slides.length) index = 0;
+        
+        slides.forEach(slide => slide.classList.remove('active'));
+        indicators.forEach(indicator => indicator.classList.remove('active'));
+        
+        slides[index].classList.add('active');
+        indicators[index].classList.add('active');
+        
+        currentIndex = index;
+    }
+
+    function nextSlide() {
+        showSlide(currentIndex + 1);
+    }
+
+    function prevSlide() {
+        showSlide(currentIndex - 1);
+    }
+
+    function startAutoSlide() {
+        autoSlideInterval = setInterval(nextSlide, 5000);
+    }
+
+    function stopAutoSlide() {
+        clearInterval(autoSlideInterval);
+    }
+
+    // Event listeners
+    prevBtn.addEventListener('click', () => {
+        prevSlide();
+        stopAutoSlide();
+        startAutoSlide();
     });
+
+    nextBtn.addEventListener('click', () => {
+        nextSlide();
+        stopAutoSlide();
+        startAutoSlide();
+    });
+
+    indicators.forEach(indicator => {
+        indicator.addEventListener('click', function() {
+            const index = parseInt(this.getAttribute('data-index'));
+            showSlide(index);
+            stopAutoSlide();
+            startAutoSlide();
+        });
+    });
+
+    // Pause auto-slide on hover
+    const carousel = document.querySelector('.mre-carousel');
+    carousel.addEventListener('mouseenter', stopAutoSlide);
+    carousel.addEventListener('mouseleave', startAutoSlide);
+
+    // Start auto-slide
+    startAutoSlide();
+
+    // News cards animation
+    const newsCards = document.querySelectorAll('.mre-news-card');
+    newsCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(30px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 200);
+    });
+
+    // Intersection Observer for animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.animation = 'mre-fadeInUp 0.8s ease-out forwards';
+            }
+        });
+    }, observerOptions);
+
+    // Observe sections
+    document.querySelectorAll('.mre-winners-section, .mre-location-section').forEach(section => {
+        observer.observe(section);
+    });
+
+    // Smooth scrolling for read more buttons
+    document.querySelectorAll('.mre-read-more-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Add your read more functionality here
+            console.log('Read more clicked');
+        });
+    });
+});
+
+// Add fade in animation
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes mre-fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+`;
+document.head.appendChild(style);
 </script>
+
+<%- include('partials/footer') %>

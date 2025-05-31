@@ -1,114 +1,175 @@
 <%- include('partials/header', { title: 'Matchfinder', username: username }) %>
 
-<div class="main-content">
-    <div class="sidebar">
-        <div class="sidebar-section">
-            <h3 class="sidebar-title">TUS CRÉDITOS</h3>
-            <div class="user-credits">
-                <span class="credits-amount"><%= userCreditos.toFixed(2) %></span>
-                <span class="credits-label">Créditos</span>
+<div class="mfi-matchfinder-container">
+    <div class="mfi-matchfinder-sidebar">
+        <!-- Sección de Créditos -->
+        <div class="mfi-sidebar-section">
+            <h3 class="mfi-sidebar-title">TUS CRÉDITOS</h3>
+            <div class="mfi-user-credits">
+                <div class="mfi-credits-icon">💰</div>
+                <div class="mfi-credits-info">
+                    <span class="mfi-credits-amount"><%= userCreditos.toFixed(2) %></span>
+                    <span class="mfi-credits-label">Créditos</span>
+                </div>
             </div>
         </div>
-        <div class="sidebar-section">
-            <h3 class="sidebar-title">TEAM SIZE</h3>
-            <div class="checkbox-item">
-                <input type="checkbox" id="all" checked> <label for="all">All</label>
-            </div>
-            <div class="checkbox-item">
-                <input type="checkbox" id="solo"> <label for="solo">Solo</label>
-            </div>
-            <div class="checkbox-item">
-                <input type="checkbox" id="duo"> <label for="duo">Duo</label>
-            </div>
-            <div class="checkbox-item">
-                <input type="checkbox" id="squad"> <label for="squad">Squad</label>
+
+        <!-- Filtros de Team Size -->
+        <div class="mfi-sidebar-section">
+            <h3 class="mfi-sidebar-title">TEAM SIZE</h3>
+            <div class="mfi-filter-group">
+                <div class="mfi-checkbox-item">
+                    <input type="checkbox" id="all" checked>
+                    <label for="all">
+                        <span class="mfi-checkbox-custom"></span>
+                        <span class="mfi-checkbox-text">All</span>
+                    </label>
+                </div>
+                <div class="mfi-checkbox-item">
+                    <input type="checkbox" id="solo">
+                    <label for="solo">
+                        <span class="mfi-checkbox-custom"></span>
+                        <span class="mfi-checkbox-text">Solo</span>
+                    </label>
+                </div>
+                <div class="mfi-checkbox-item">
+                    <input type="checkbox" id="duo">
+                    <label for="duo">
+                        <span class="mfi-checkbox-custom"></span>
+                        <span class="mfi-checkbox-text">Duo</span>
+                    </label>
+                </div>
+                <div class="mfi-checkbox-item">
+                    <input type="checkbox" id="squad">
+                    <label for="squad">
+                        <span class="mfi-checkbox-custom"></span>
+                        <span class="mfi-checkbox-text">Squad</span>
+                    </label>
+                </div>
             </div>
         </div>
-        <div class="sidebar-section">
-            <h3 class="sidebar-title">CATEGORIES</h3>
-            <div class="checkbox-item">
-                <input type="checkbox" id="general" checked> <label for="general">General</label>
-            </div>
-            <div class="checkbox-item">
-                <input type="checkbox" id="elite"> <label for="elite">Elite</label>
-            </div>
-            <div class="checkbox-item">
-                <input type="checkbox" id="free"> <label for="free">Free</label>
-            </div>
-            <div class="checkbox-item">
-                <input type="checkbox" id="guaranteed"> <label for="guaranteed">Guaranteed</label>
+
+        <!-- Filtros de Categorías -->
+        <div class="mfi-sidebar-section">
+            <h3 class="mfi-sidebar-title">CATEGORIES</h3>
+            <div class="mfi-filter-group">
+                <div class="mfi-checkbox-item">
+                    <input type="checkbox" id="general" checked>
+                    <label for="general">
+                        <span class="mfi-checkbox-custom"></span>
+                        <span class="mfi-checkbox-text">General</span>
+                    </label>
+                </div>
+                <div class="mfi-checkbox-item">
+                    <input type="checkbox" id="elite">
+                    <label for="elite">
+                        <span class="mfi-checkbox-custom"></span>
+                        <span class="mfi-checkbox-text">Elite</span>
+                    </label>
+                </div>
+                <div class="mfi-checkbox-item">
+                    <input type="checkbox" id="free">
+                    <label for="free">
+                        <span class="mfi-checkbox-custom"></span>
+                        <span class="mfi-checkbox-text">Free</span>
+                    </label>
+                </div>
+                <div class="mfi-checkbox-item">
+                    <input type="checkbox" id="guaranteed">
+                    <label for="guaranteed">
+                        <span class="mfi-checkbox-custom"></span>
+                        <span class="mfi-checkbox-text">Guaranteed</span>
+                    </label>
+                </div>
             </div>
         </div>
     </div>
-    <div class="content">
+
+    <div class="mfi-matchfinder-content">
+        <!-- Alertas -->
         <% if (message) { %>
-            <div class="alert alert-success">
-                <%= message %>
+            <div class="mfi-alert mfi-alert-success">
+                <i class="fas fa-check-circle"></i>
+                <span><%= message %></span>
             </div>
         <% } %>
         
         <% if (error) { %>
-            <div class="alert alert-error">
-                <% if (error === 'cannot-join-own-match') { %>
-                    No puedes unirte a tu propia partida.
-                <% } else if (error === 'match-unavailable') { %>
-                    Esta partida ya no está disponible.
-                <% } else if (error === 'user-not-found') { %>
-                    Usuario no encontrado.
-                <% } else if (error === 'match-not-found') { %>
-                    Partida no encontrada.
-                <% } else if (error === 'not-in-match') { %>
-                    No eres parte de esta partida.
-                <% } else if (error === 'server-error') { %>
-                    Error del servidor. Inténtalo de nuevo más tarde.
-                <% } else if (error === 'insufficient-credits') { %>
-                    No tienes suficientes créditos para unirte a esta partida.
-                <% } else { %>
-                    <%= error %>
-                <% } %>
+            <div class="mfi-alert mfi-alert-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>
+                    <% if (error === 'cannot-join-own-match') { %>
+                        No puedes unirte a tu propia partida.
+                    <% } else if (error === 'match-unavailable') { %>
+                        Esta partida ya no está disponible.
+                    <% } else if (error === 'user-not-found') { %>
+                        Usuario no encontrado.
+                    <% } else if (error === 'match-not-found') { %>
+                        Partida no encontrada.
+                    <% } else if (error === 'not-in-match') { %>
+                        No eres parte de esta partida.
+                    <% } else if (error === 'server-error') { %>
+                        Error del servidor. Inténtalo de nuevo más tarde.
+                    <% } else if (error === 'insufficient-credits') { %>
+                        No tienes suficientes créditos para unirte a esta partida.
+                    <% } else { %>
+                        <%= error %>
+                    <% } %>
+                </span>
             </div>
         <% } %>
         
         <!-- Sección de Partidas Activas -->
         <% if (activeMatches && activeMatches.length > 0) { %>
-            <div class="top-bar">
-                <h2 class="page-title">TUS PARTIDAS ACTIVAS</h2>
-                <div class="view-options">
-                    <a href="/create-match" class="create-match-btn">CREATE MATCH</a>
-                </div>
+            <div class="mfi-section-header">
+                <h2 class="mfi-section-title">TUS PARTIDAS ACTIVAS</h2>
+                <a href="/create-match" class="mfi-create-match-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>CREATE MATCH</span>
+                </a>
             </div>
             
-            <div class="match-grid">
+            <div class="mfi-match-grid">
                 <% activeMatches.forEach(match => { %>
-                    <div class="match-card active-match">
-                        <div class="match-header">
-                            <img src="/images/league_of_legends-icon.png" alt="Match" class="match-image">
-                            <div class="prize"><%= match.creditos %> Credits</div>
+                    <div class="mfi-match-card mfi-active-match">
+                        <div class="mfi-match-header">
+                            <img src="/images/league_of_legends-icon.png" alt="Match" class="mfi-match-image">
+                            <div class="mfi-match-prize">
+                                <span class="mfi-prize-amount"><%= match.creditos %></span>
+                                <span class="mfi-prize-label">Credits</span>
+                            </div>
+                            <div class="mfi-match-status">ACTIVE</div>
                         </div>
-                        <div class="match-info">
-                            <h3 class="match-title"><%= match.mode %> - <%= match.map %></h3>
-                            <p><%= new Date(match.created_at).toLocaleDateString() %> <span class="match-format"><%= match.format %></span></p>
-                            <div class="match-details">
-                                <div>
-                                    <div class="detail-label">BLUE PLAYER</div>
-                                    <div><%= match.blue_username %></div>
+                        <div class="mfi-match-info">
+                            <h3 class="mfi-match-title"><%= match.mode %> - <%= match.map %></h3>
+                            <p class="mfi-match-date">
+                                <%= new Date(match.created_at).toLocaleDateString() %>
+                                <span class="mfi-match-format"><%= match.format %></span>
+                            </p>
+                            <div class="mfi-match-details">
+                                <div class="mfi-detail-item">
+                                    <div class="mfi-detail-label">BLUE PLAYER</div>
+                                    <div class="mfi-detail-value"><%= match.blue_username %></div>
                                 </div>
-                                <div>
-                                    <div class="detail-label">RED PLAYER</div>
-                                    <div><%= match.red_username %></div>
+                                <div class="mfi-detail-item">
+                                    <div class="mfi-detail-label">RED PLAYER</div>
+                                    <div class="mfi-detail-value"><%= match.red_username %></div>
                                 </div>
-                                <div>
-                                    <div class="detail-label">REGION</div>
-                                    <div><%= match.region.toUpperCase() %></div>
+                                <div class="mfi-detail-item">
+                                    <div class="mfi-detail-label">REGION</div>
+                                    <div class="mfi-detail-value"><%= match.region.toUpperCase() %></div>
                                 </div>
-                                <div>
-                                    <div class="detail-label">SKILL LEVEL</div>
-                                    <div><%= match.skill_level %></div>
+                                <div class="mfi-detail-item">
+                                    <div class="mfi-detail-label">SKILL LEVEL</div>
+                                    <div class="mfi-detail-value"><%= match.skill_level %></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="match-footer">
-                            <a href="/match-result/<%= match.id_game %>">Report Result →</a>
+                        <div class="mfi-match-footer">
+                            <a href="/match-result/<%= match.id_game %>" class="mfi-match-action">
+                                <span>Report Result</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
                 <% }); %>
@@ -117,32 +178,39 @@
         
         <!-- Sección de Partidas Completadas -->
         <% if (completedMatches && completedMatches.length > 0) { %>
-            <div class="top-bar" style="<%= activeMatches && activeMatches.length > 0 ? 'margin-top: 40px;' : '' %>">
-                <h2 class="page-title">TUS PARTIDAS RECIENTES</h2>
+            <div class="mfi-section-header" style="<%= activeMatches && activeMatches.length > 0 ? 'margin-top: 3rem;' : '' %>">
+                <h2 class="mfi-section-title">TUS PARTIDAS RECIENTES</h2>
             </div>
             
-            <div class="match-grid">
+            <div class="mfi-match-grid">
                 <% completedMatches.forEach(match => { %>
-                    <div class="match-card completed-match">
-                        <div class="match-header">
-                            <img src="/images/league_of_legends-icon.png" alt="Match" class="match-image">
-                            <div class="prize"><%= match.creditos %> Credits</div>
+                    <div class="mfi-match-card mfi-completed-match">
+                        <div class="mfi-match-header">
+                            <img src="/images/league_of_legends-icon.png" alt="Match" class="mfi-match-image">
+                            <div class="mfi-match-prize">
+                                <span class="mfi-prize-amount"><%= match.creditos %></span>
+                                <span class="mfi-prize-label">Credits</span>
+                            </div>
+                            <div class="mfi-match-status completed">COMPLETED</div>
                         </div>
-                        <div class="match-info">
-                            <h3 class="match-title"><%= match.mode %> - <%= match.map %></h3>
-                            <p><%= new Date(match.created_at).toLocaleDateString() %> <span class="match-format"><%= match.format %></span></p>
-                            <div class="match-details">
-                                <div>
-                                    <div class="detail-label">BLUE PLAYER</div>
-                                    <div><%= match.blue_username %></div>
+                        <div class="mfi-match-info">
+                            <h3 class="mfi-match-title"><%= match.mode %> - <%= match.map %></h3>
+                            <p class="mfi-match-date">
+                                <%= new Date(match.created_at).toLocaleDateString() %>
+                                <span class="mfi-match-format"><%= match.format %></span>
+                            </p>
+                            <div class="mfi-match-details">
+                                <div class="mfi-detail-item">
+                                    <div class="mfi-detail-label">BLUE PLAYER</div>
+                                    <div class="mfi-detail-value"><%= match.blue_username %></div>
                                 </div>
-                                <div>
-                                    <div class="detail-label">RED PLAYER</div>
-                                    <div><%= match.red_username %></div>
+                                <div class="mfi-detail-item">
+                                    <div class="mfi-detail-label">RED PLAYER</div>
+                                    <div class="mfi-detail-value"><%= match.red_username %></div>
                                 </div>
-                                <div>
-                                    <div class="detail-label">WINNER</div>
-                                    <div>
+                                <div class="mfi-detail-item">
+                                    <div class="mfi-detail-label">WINNER</div>
+                                    <div class="mfi-detail-value mfi-winner">
                                         <% if (match.winner === match.id_summoner_blue) { %>
                                             <%= match.blue_username %> (Blue)
                                         <% } else { %>
@@ -152,8 +220,11 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="match-footer">
-                            <a href="/match-result/<%= match.id_game %>">View Details →</a>
+                        <div class="mfi-match-footer">
+                            <a href="/match-result/<%= match.id_game %>" class="mfi-match-action">
+                                <span>View Details</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
                 <% }); %>
@@ -161,165 +232,193 @@
         <% } %>
         
         <!-- Sección de Partidas Disponibles -->
-        <div class="top-bar" style="<%= (activeMatches && activeMatches.length > 0) || (completedMatches && completedMatches.length > 0) ? 'margin-top: 40px;' : '' %>">
-            <h2 class="page-title">PARTIDAS DISPONIBLES</h2>
-            <div class="view-options">
-                <a href="/create-match" class="create-match-btn">CREATE MATCH</a>
-            </div>
+        <div class="mfi-section-header" style="<%= (activeMatches && activeMatches.length > 0) || (completedMatches && completedMatches.length > 0) ? 'margin-top: 3rem;' : '' %>">
+            <h2 class="mfi-section-title">PARTIDAS DISPONIBLES</h2>
+            <a href="/create-match" class="mfi-create-match-btn">
+                <i class="fas fa-plus"></i>
+                <span>CREATE MATCH</span>
+            </a>
         </div>
         
-        <div class="match-grid">
+        <div class="mfi-match-grid">
             <% if (matches && matches.length > 0) { %>
                 <% matches.forEach(match => { %>
-                    <div class="match-card">
-                        <div class="match-header">
-                            <img src="/images/league_of_legends-icon.png" alt="Match" class="match-image">
-                            <div class="prize"><%= match.creditos %> Credits</div>
+                    <div class="mfi-match-card">
+                        <div class="mfi-match-header">
+                            <img src="/images/league_of_legends-icon.png" alt="Match" class="mfi-match-image">
+                            <div class="mfi-match-prize">
+                                <span class="mfi-prize-amount"><%= match.creditos %></span>
+                                <span class="mfi-prize-label">Credits</span>
+                            </div>
+                            <div class="mfi-match-status available">AVAILABLE</div>
                         </div>
-                        <div class="match-info">
-                            <h3 class="match-title"><%= match.mode %> - <%= match.map %></h3>
-                            <p><%= new Date(match.created_at).toLocaleDateString() %> <span class="match-format"><%= match.format %></span></p>
-                            <div class="match-details">
-                                <div>
-                                    <div class="detail-label">ENTRY/PLAYER</div>
-                                    <div><%= match.creditos %> Credits</div>
+                        <div class="mfi-match-info">
+                            <h3 class="mfi-match-title"><%= match.mode %> - <%= match.map %></h3>
+                            <p class="mfi-match-date">
+                                <%= new Date(match.created_at).toLocaleDateString() %>
+                                <span class="mfi-match-format"><%= match.format %></span>
+                            </p>
+                            <div class="mfi-match-details">
+                                <div class="mfi-detail-item">
+                                    <div class="mfi-detail-label">ENTRY/PLAYER</div>
+                                    <div class="mfi-detail-value"><%= match.creditos %> Credits</div>
                                 </div>
-                                <div>
-                                    <div class="detail-label">TEAM SIZE</div>
-                                    <div><%= match.mode %></div>
+                                <div class="mfi-detail-item">
+                                    <div class="mfi-detail-label">TEAM SIZE</div>
+                                    <div class="mfi-detail-value"><%= match.mode %></div>
                                 </div>
-                                <div>
-                                    <div class="detail-label">REGION</div>
-                                    <div><%= match.region.toUpperCase() %></div>
+                                <div class="mfi-detail-item">
+                                    <div class="mfi-detail-label">REGION</div>
+                                    <div class="mfi-detail-value"><%= match.region.toUpperCase() %></div>
                                 </div>
-                                <div>
-                                    <div class="detail-label">SKILL LEVEL</div>
-                                    <div><%= match.skill_level %></div>
+                                <div class="mfi-detail-item">
+                                    <div class="mfi-detail-label">SKILL LEVEL</div>
+                                    <div class="mfi-detail-value"><%= match.skill_level %></div>
                                 </div>
                             </div>
                         </div>
-                        <div class="match-footer">
-                            <a href="/join-match/<%= match.id_game %>">Join Match →</a>
+                        <div class="mfi-match-footer">
+                            <a href="/join-match/<%= match.id_game %>" class="mfi-match-action mfi-join-action">
+                                <span>Join Match</span>
+                                <i class="fas fa-arrow-right"></i>
+                            </a>
                         </div>
                     </div>
                 <% }); %>
             <% } else { %>
-                <div class="no-matches">
-                    <p>No hay partidas disponibles en este momento.</p>
+                <div class="mfi-no-matches">
+                    <div class="mfi-no-matches-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <h3>No hay partidas disponibles</h3>
                     <p>¡Sé el primero en crear una partida!</p>
+                    <a href="/create-match" class="mfi-create-match-btn">
+                        <i class="fas fa-plus"></i>
+                        <span>CREATE MATCH</span>
+                    </a>
                 </div>
             <% } %>
         </div>
         
         <!-- Sección de Torneos -->
-        <div class="top-bar" style="margin-top: 40px;">
-            <h2 class="page-title">UPCOMING TOURNAMENTS</h2>
-            <div class="view-options">
-                <a href="#" class="nav-link">Leaderboards</a>
-                <a href="#" class="nav-link">Grid View</a>
+        <div class="mfi-section-header" style="margin-top: 3rem;">
+            <h2 class="mfi-section-title">UPCOMING TOURNAMENTS</h2>
+            <div class="mfi-section-actions">
+                <a href="#" class="mfi-nav-link">Leaderboards</a>
+                <a href="#" class="mfi-nav-link">Grid View</a>
             </div>
         </div>
-        <div class="tournament-grid">
-            <div class="tournament-card">
-                <div class="tournament-header">
-                    <img src="/images/league_of_legends-icon.png" alt="Tournament" class="tournament-image">
-                    <div class="prize">$360</div>
+        
+        <div class="mfi-tournament-grid">
+            <div class="mfi-tournament-card">
+                <div class="mfi-tournament-header">
+                    <img src="/images/league_of_legends-icon.png" alt="Tournament" class="mfi-tournament-image">
+                    <div class="mfi-tournament-prize">
+                        <span class="mfi-prize-amount">$360</span>
+                        <span class="mfi-prize-label">Prize Pool</span>
+                    </div>
+                    <div class="mfi-tournament-status">UPCOMING</div>
                 </div>
-                <div class="tournament-info">
-                    <h3 class="tournament-title">1v1 KILL RACE BEST OF 1</h3>
-                    <p>Feb 21, 7:00 AM EST <span class="start-time">Starts in 3H 59M</span></p>
-                    <div class="tournament-details">
-                        <div>
-                            <div class="detail-label">ENTRY/PLAYER</div>
-                            <div>5 Credits</div>
+                <div class="mfi-tournament-info">
+                    <h3 class="mfi-tournament-title">1v1 KILL RACE BEST OF 1</h3>
+                    <p class="mfi-tournament-date">
+                        Feb 21, 7:00 AM EST
+                        <span class="mfi-start-time">Starts in 3H 59M</span>
+                    </p>
+                    <div class="mfi-tournament-details">
+                        <div class="mfi-detail-item">
+                            <div class="mfi-detail-label">ENTRY/PLAYER</div>
+                            <div class="mfi-detail-value">5 Credits</div>
                         </div>
-                        <div>
-                            <div class="detail-label">TEAM SIZE</div>
-                            <div>1v1</div>
+                        <div class="mfi-detail-item">
+                            <div class="mfi-detail-label">TEAM SIZE</div>
+                            <div class="mfi-detail-value">1v1</div>
                         </div>
-                        <div>
-                            <div class="detail-label">REGIONS</div>
-                            <div>NA + EU</div>
+                        <div class="mfi-detail-item">
+                            <div class="mfi-detail-label">REGIONS</div>
+                            <div class="mfi-detail-value">NA + EU</div>
                         </div>
-                        <div>
-                            <div class="detail-label">SKILL LEVEL</div>
-                            <div>All</div>
+                        <div class="mfi-detail-item">
+                            <div class="mfi-detail-label">SKILL LEVEL</div>
+                            <div class="mfi-detail-value">All</div>
                         </div>
                     </div>
                 </div>
-                <div class="tournament-footer">
-                    <a href="#">View Tournament →</a>
+                <div class="mfi-tournament-footer">
+                    <a href="#" class="mfi-tournament-action">
+                        <span>View Tournament</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
                 </div>
             </div>
-            <div class="tournament-card">
-                <div class="tournament-header">
-                    <img src="/images/league_of_legends-icon.png" alt="Tournament" class="tournament-image">
-                    <div class="prize">$50</div>
+            
+            <div class="mfi-tournament-card">
+                <div class="mfi-tournament-header">
+                    <img src="/images/league_of_legends-icon.png" alt="Tournament" class="mfi-tournament-image">
+                    <div class="mfi-tournament-prize">
+                        <span class="mfi-prize-amount">$50</span>
+                        <span class="mfi-prize-label">Prize Pool</span>
+                    </div>
+                    <div class="mfi-tournament-status">UPCOMING</div>
                 </div>
-                <div class="tournament-info">
-                    <h3 class="tournament-title">1v1 KILL RACE BEST OF 1</h3>
-                    <p>Feb 21, 9:00 AM EST <span class="start-time">Starts in 5H 59M</span></p>
-                    <div class="tournament-details">
-                        <div>
-                            <div class="detail-label">ENTRY/PLAYER</div>
-                            <div>5 Credits</div>
+                <div class="mfi-tournament-info">
+                    <h3 class="mfi-tournament-title">1v1 KILL RACE BEST OF 1</h3>
+                    <p class="mfi-tournament-date">
+                        Feb 21, 9:00 AM EST
+                        <span class="mfi-start-time">Starts in 5H 59M</span>
+                    </p>
+                    <div class="mfi-tournament-details">
+                        <div class="mfi-detail-item">
+                            <div class="mfi-detail-label">ENTRY/PLAYER</div>
+                            <div class="mfi-detail-value">5 Credits</div>
                         </div>
-                        <div>
-                            <div class="detail-label">TEAM SIZE</div>
-                            <div>1v1</div>
+                        <div class="mfi-detail-item">
+                            <div class="mfi-detail-label">TEAM SIZE</div>
+                            <div class="mfi-detail-value">1v1</div>
                         </div>
-                        <div>
-                            <div class="detail-label">REGIONS</div>
-                            <div>NA + EU</div>
+                        <div class="mfi-detail-item">
+                            <div class="mfi-detail-label">REGIONS</div>
+                            <div class="mfi-detail-value">NA + EU</div>
                         </div>
-                        <div>
-                            <div class="detail-label">SKILL LEVEL</div>
-                            <div>All</div>
+                        <div class="mfi-detail-item">
+                            <div class="mfi-detail-label">SKILL LEVEL</div>
+                            <div class="mfi-detail-value">All</div>
                         </div>
                     </div>
                 </div>
-                <div class="tournament-footer">
-                    <a href="#">View Tournament →</a>
+                <div class="mfi-tournament-footer">
+                    <a href="#" class="mfi-tournament-action">
+                        <span>View Tournament</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-/* Estilos para la sección de créditos del usuario */
-.user-credits {
-    background-color: #2a2a2a;
-    padding: 15px;
-    border-radius: 8px;
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.credits-amount {
-    display: block;
-    font-size: 2rem;
-    font-weight: 700;
-    color: #8a2be2;
-    margin-bottom: 5px;
-}
-
-.credits-label {
-    color: #ccc;
-    font-size: 0.9rem;
-}
-
-/* Estilos para partidas completadas */
-.match-card.completed-match {
-    border: 1px solid #444;
-}
-</style>
-
-<script src="/js/client.js"></script>
 <script>
     $(document).ready(function() {
-        $('.checkbox-item input').change(function() {
-            // Add filter functionality here
+        // Funcionalidad de filtros
+        $('.mfi-checkbox-item input').change(function() {
+            // Aquí puedes agregar la lógica de filtrado
+            console.log('Filter changed:', this.id, this.checked);
+        });
+        
+        // Animaciones de entrada
+        $('.mfi-match-card, .mfi-tournament-card').each(function(index) {
+            $(this).css({
+                'opacity': '0',
+                'transform': 'translateY(20px)'
+            });
+            
+            setTimeout(() => {
+                $(this).css({
+                    'transition': 'all 0.5s ease',
+                    'opacity': '1',
+                    'transform': 'translateY(0)'
+                });
+            }, index * 100);
         });
     });
 </script>

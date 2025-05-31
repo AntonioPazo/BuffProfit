@@ -1,0 +1,495 @@
+<%- include('partials/header', { title: 'Withdraw Credits', username: username, userCreditos: userCreditos }) %>
+
+<div class="wc-withdrawal-container">
+    <div class="wc-withdrawal-sidebar">
+        <!-- Sección de Créditos Actuales -->
+        <div class="wc-sidebar-section">
+            <h3 class="wc-sidebar-title">TUS CRÉDITOS ACTUALES</h3>
+            <div class="wc-user-credits">
+                <div class="wc-credits-icon">💳</div>
+                <div class="wc-credits-info">
+                    <span class="wc-credits-amount"><%= userCreditos.toFixed(2) %></span>
+                    <span class="wc-credits-label">Créditos</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sección de Información -->
+        <div class="wc-sidebar-section">
+            <h3 class="wc-sidebar-title">INFORMACIÓN DE RETIRADA</h3>
+            <div class="wc-info-card">
+                <div class="wc-info-item">
+                    <div class="wc-info-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="wc-info-text">
+                        Convierte tus créditos de vuelta a dinero real.
+                    </div>
+                </div>
+                <div class="wc-info-item">
+                    <div class="wc-info-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div class="wc-info-text">
+                        <strong>Tasa de cambio:</strong><br>100 créditos = 1€
+                    </div>
+                </div>
+                <div class="wc-info-item">
+                    <div class="wc-info-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="wc-info-text">
+                        <strong>Mínimo:</strong> 1000 créditos (10€)
+                    </div>
+                </div>
+                <div class="wc-info-item">
+                    <div class="wc-info-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="wc-info-text">
+                        <strong>Comisión:</strong> 2% + 0.35€
+                    </div>
+                </div>
+                <div class="wc-info-item">
+                    <div class="wc-info-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="wc-info-text">
+                        <strong>Tiempo:</strong> 1-3 días laborables
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sección de Proceso -->
+        <div class="wc-sidebar-section">
+            <h3 class="wc-sidebar-title">PROCESO</h3>
+            <div class="wc-process-card">
+                <div class="wc-process-steps">
+                    <div class="wc-process-step">
+                        <div class="wc-step-number">1</div>
+                        <div class="wc-step-text">Solicita la retirada</div>
+                    </div>
+                    <div class="wc-process-step">
+                        <div class="wc-step-number">2</div>
+                        <div class="wc-step-text">Revisión por nuestro equipo</div>
+                    </div>
+                    <div class="wc-process-step">
+                        <div class="wc-step-number">3</div>
+                        <div class="wc-step-text">Transferencia a tu PayPal</div>
+                    </div>
+                    <div class="wc-process-step">
+                        <div class="wc-step-number">4</div>
+                        <div class="wc-step-text">Confirmación por email</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="wc-withdrawal-content">
+        <!-- Header -->
+        <div class="wc-content-header">
+            <div class="wc-header-content">
+                <div class="wc-breadcrumb">
+                    <a href="/matchfinder" class="wc-breadcrumb-link">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Volver al Dashboard</span>
+                    </a>
+                </div>
+                <h1 class="wc-page-title">RETIRAR CRÉDITOS</h1>
+                <p class="wc-page-subtitle">Convierte tus créditos en dinero real de forma segura</p>
+            </div>
+        </div>
+        
+        <!-- Formulario de Retirada -->
+        <div class="wc-withdrawal-form">
+            <form id="withdrawalForm">
+                <!-- Sección de Detalles -->
+                <div class="wc-content-card">
+                    <div class="wc-card-header">
+                        <h3 class="wc-card-title">
+                            <i class="fas fa-calculator"></i>
+                            <span>Detalles de la retirada</span>
+                        </h3>
+                    </div>
+                    <div class="wc-card-content">
+                        <div class="wc-withdrawal-input-group">
+                            <div class="wc-form-group">
+                                <label for="creditsAmount" class="wc-form-label">
+                                    <i class="fas fa-coins"></i>
+                                    <span>Cantidad de créditos a retirar:</span>
+                                </label>
+                                <div class="wc-input-container">
+                                    <input type="number" id="creditsAmount" name="creditsAmount" min="1000" step="100" max="<%= userCreditos %>" onchange="updateWithdrawalAmount()" class="wc-form-input">
+                                    <div class="wc-input-buttons">
+                                        <button type="button" class="wc-input-btn" onclick="adjustCredits(-100)">-</button>
+                                        <button type="button" class="wc-input-btn" onclick="adjustCredits(100)">+</button>
+                                    </div>
+                                </div>
+                                <small class="wc-form-text">Mínimo: 1000 créditos | Máximo: <%= userCreditos.toFixed(0) %> créditos</small>
+                            </div>
+                            <div class="wc-form-group">
+                                <label for="euroAmount" class="wc-form-label">
+                                    <i class="fas fa-euro-sign"></i>
+                                    <span>Cantidad bruta (antes de comisiones):</span>
+                                </label>
+                                <input type="number" id="euroAmount" name="euroAmount" step="0.01" readonly class="wc-form-input wc-input-readonly">
+                                <small class="wc-form-text">100 créditos = 1€</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección de PayPal -->
+                <div class="wc-content-card">
+                    <div class="wc-card-header">
+                        <h3 class="wc-card-title">
+                            <i class="fab fa-paypal"></i>
+                            <span>Información de PayPal</span>
+                        </h3>
+                    </div>
+                    <div class="wc-card-content">
+                        <div class="wc-form-group">
+                            <label for="paypalEmail" class="wc-form-label">
+                                <i class="fas fa-envelope"></i>
+                                <span>Email de PayPal:</span>
+                            </label>
+                            <input type="email" id="paypalEmail" name="paypalEmail" placeholder="tu-email@ejemplo.com" required class="wc-form-input">
+                            <small class="wc-form-text">Asegúrate de que este email esté asociado a tu cuenta de PayPal</small>
+                        </div>
+                        <div class="wc-paypal-info">
+                            <div class="wc-paypal-icon">
+                                <i class="fab fa-paypal"></i>
+                            </div>
+                            <div class="wc-paypal-text">
+                                <div class="wc-paypal-title">Pago seguro con PayPal</div>
+                                <div class="wc-paypal-subtitle">Recibirás el dinero directamente en tu cuenta de PayPal</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección de Resumen -->
+                <div class="wc-content-card">
+                    <div class="wc-card-header">
+                        <h3 class="wc-card-title">
+                            <i class="fas fa-receipt"></i>
+                            <span>Resumen de la retirada</span>
+                        </h3>
+                    </div>
+                    <div class="wc-card-content">
+                        <div class="wc-withdrawal-summary">
+                            <div class="wc-summary-row">
+                                <div class="wc-summary-label">
+                                    <i class="fas fa-coins"></i>
+                                    <span>Créditos a retirar:</span>
+                                </div>
+                                <div class="wc-summary-value" id="summaryCredits">0</div>
+                            </div>
+                            <div class="wc-summary-row">
+                                <div class="wc-summary-label">
+                                    <i class="fas fa-money-bill"></i>
+                                    <span>Cantidad bruta:</span>
+                                </div>
+                                <div class="wc-summary-value" id="summaryGross">0.00€</div>
+                            </div>
+                            <div class="wc-summary-row">
+                                <div class="wc-summary-label">
+                                    <i class="fas fa-percentage"></i>
+                                    <span>Comisión (2% + 0.35€):</span>
+                                </div>
+                                <div class="wc-summary-value wc-summary-fee" id="summaryFee">0.00€</div>
+                            </div>
+                            <div class="wc-summary-row wc-summary-total">
+                                <div class="wc-summary-label">
+                                    <i class="fas fa-wallet"></i>
+                                    <span>Cantidad neta a recibir:</span>
+                                </div>
+                                <div class="wc-summary-value wc-summary-highlight" id="summaryNet">0.00€</div>
+                            </div>
+                            <div class="wc-summary-row">
+                                <div class="wc-summary-label">
+                                    <i class="fas fa-coins"></i>
+                                    <span>Créditos restantes:</span>
+                                </div>
+                                <div class="wc-summary-value" id="summaryRemaining"><%= userCreditos.toFixed(2) %></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sección de Términos -->
+                <div class="wc-content-card">
+                    <div class="wc-card-header">
+                        <h3 class="wc-card-title">
+                            <i class="fas fa-file-contract"></i>
+                            <span>Términos y Condiciones</span>
+                        </h3>
+                    </div>
+                    <div class="wc-card-content">
+                        <div class="wc-terms-section">
+                            <div class="wc-checkbox-item">
+                                <input type="checkbox" id="acceptTerms" required>
+                                <label for="acceptTerms" class="wc-checkbox-label">
+                                    <span class="wc-checkbox-custom"></span>
+                                    <span class="wc-checkbox-text">
+                                        Acepto los <a href="/withdrawal-terms" target="_blank" class="wc-terms-link">términos y condiciones</a> de retirada
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Acciones del Formulario -->
+                <div class="wc-form-actions">
+                    <button type="submit" class="wc-btn wc-btn-primary" id="submitBtn" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Solicitar Retirada</span>
+                    </button>
+                    <button type="button" class="wc-btn wc-btn-outline" onclick="window.location.href='/matchfinder'">
+                        <i class="fas fa-times"></i>
+                        <span>Cancelar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function updateWithdrawalAmount() {
+        const creditsAmount = parseInt(document.getElementById('creditsAmount').value) || 0;
+        const grossAmount = (creditsAmount / 100);
+        const feeAmount = (grossAmount * 0.02) + 0.35;
+        const netAmount = Math.max(0, grossAmount - feeAmount);
+        
+        document.getElementById('euroAmount').value = grossAmount.toFixed(2);
+        document.getElementById('summaryCredits').textContent = creditsAmount;
+        document.getElementById('summaryGross').textContent = grossAmount.toFixed(2) + '€';
+        document.getElementById('summaryFee').textContent = feeAmount.toFixed(2) + '€';
+        document.getElementById('summaryNet').textContent = netAmount.toFixed(2) + '€';
+        document.getElementById('summaryRemaining').textContent = (<%= userCreditos %> - creditsAmount).toFixed(2);
+        
+        validateForm();
+    }
+    
+    function adjustCredits(amount) {
+        const input = document.getElementById('creditsAmount');
+        let value = parseInt(input.value) || 0;
+        value += amount;
+        
+        // Asegurar límites
+        if (value < 1000) value = 1000;
+        if (value > <%= userCreditos %>) value = <%= userCreditos %>;
+        
+        input.value = value;
+        updateWithdrawalAmount();
+    }
+    
+    function validateForm() {
+        const creditsAmount = parseInt(document.getElementById('creditsAmount').value) || 0;
+        const paypalEmail = document.getElementById('paypalEmail').value;
+        const acceptTerms = document.getElementById('acceptTerms').checked;
+        const submitBtn = document.getElementById('submitBtn');
+        
+        const isValid = creditsAmount >= 1000 && 
+                       creditsAmount <= <%= userCreditos %> && 
+                       paypalEmail && 
+                       acceptTerms;
+        
+        submitBtn.disabled = !isValid;
+    }
+    
+    // Event listeners
+    document.getElementById('paypalEmail').addEventListener('input', validateForm);
+    document.getElementById('acceptTerms').addEventListener('change', validateForm);
+    
+    document.getElementById('withdrawalForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        
+        const formData = {
+            creditsAmount: parseInt(document.getElementById('creditsAmount').value),
+            paypalEmail: document.getElementById('paypalEmail').value
+        };
+        
+        if (formData.creditsAmount < 1000) {
+            showErrorMessage('La cantidad mínima para retirar es 1000 créditos');
+            return;
+        }
+        
+        if (formData.creditsAmount > <%= userCreditos %>) {
+            showErrorMessage('No tienes suficientes créditos');
+            return;
+        }
+        
+        // Mostrar loading
+        const submitBtn = document.getElementById('submitBtn');
+        const originalContent = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Procesando...</span>';
+        submitBtn.disabled = true;
+        
+        try {
+            const response = await fetch('/process-withdrawal', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+                credentials: 'include'
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && !data.err) {
+                showSuccessMessage('Solicitud de retirada enviada correctamente. Será revisada en 1-3 días laborables.');
+                
+                setTimeout(() => {
+                    window.location.href = '/matchfinder';
+                }, 2000);
+            } else {
+                showErrorMessage('Error: ' + (data.errmsg || 'Error desconocido'));
+                submitBtn.innerHTML = originalContent;
+                submitBtn.disabled = false;
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            showErrorMessage('Error conectando con el servidor');
+            submitBtn.innerHTML = originalContent;
+            submitBtn.disabled = false;
+        }
+    });
+    
+    // Función para mostrar mensaje de éxito
+    function showSuccessMessage(message) {
+        const messageElement = document.createElement('div');
+        messageElement.className = 'wc-message wc-message-success';
+        messageElement.innerHTML = `
+            <div class="wc-message-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="wc-message-content">
+                <div class="wc-message-title">¡Éxito!</div>
+                <div class="wc-message-text">${message}</div>
+            </div>
+        `;
+        document.body.appendChild(messageElement);
+        
+        setTimeout(() => {
+            messageElement.classList.add('wc-message-show');
+        }, 100);
+        
+        setTimeout(() => {
+            messageElement.classList.remove('wc-message-show');
+            setTimeout(() => {
+                document.body.removeChild(messageElement);
+            }, 300);
+        }, 5000);
+    }
+    
+    // Función para mostrar mensaje de error
+    function showErrorMessage(message) {
+        const messageElement = document.createElement('div');
+        messageElement.className = 'wc-message wc-message-error';
+        messageElement.innerHTML = `
+            <div class="wc-message-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div class="wc-message-content">
+                <div class="wc-message-title">Error</div>
+                <div class="wc-message-text">${message}</div>
+            </div>
+        `;
+        document.body.appendChild(messageElement);
+        
+        setTimeout(() => {
+            messageElement.classList.add('wc-message-show');
+        }, 100);
+        
+        setTimeout(() => {
+            messageElement.classList.remove('wc-message-show');
+            setTimeout(() => {
+                document.body.removeChild(messageElement);
+            }, 300);
+        }, 5000);
+    }
+    
+    // Añadir estilos para mensajes
+    document.head.insertAdjacentHTML('beforeend', `
+        <style>
+            .wc-message {
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                background: white;
+                border-radius: 12px;
+                padding: 15px 20px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                transform: translateY(100px);
+                opacity: 0;
+                transition: all 0.3s ease;
+                z-index: 9999;
+                max-width: 400px;
+            }
+            
+            .wc-message-show {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            
+            .wc-message-icon {
+                font-size: 24px;
+            }
+            
+            .wc-message-success .wc-message-icon {
+                color: #22c55e;
+            }
+            
+            .wc-message-error .wc-message-icon {
+                color: #ef4444;
+            }
+            
+            .wc-message-content {
+                flex: 1;
+            }
+            
+            .wc-message-title {
+                font-weight: 700;
+                font-size: 16px;
+                margin-bottom: 5px;
+                color: #1f2937;
+            }
+            
+            .wc-message-text {
+                font-size: 14px;
+                color: #4b5563;
+            }
+        </style>
+    `);
+    
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animación de entrada para las tarjetas
+        const cards = document.querySelectorAll('.wc-content-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, (index + 1) * 150);
+        });
+        
+        // Establecer valor inicial
+        document.getElementById('creditsAmount').value = 1000;
+        updateWithdrawalAmount();
+    });
+</script>
+
+<%- include('partials/footer') %>

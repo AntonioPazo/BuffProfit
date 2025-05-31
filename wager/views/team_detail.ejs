@@ -1,814 +1,830 @@
 <%- include('partials/header', { title: 'Team Details', username: username }) %>
 
-<div class="main-content">
-    <div class="sidebar">
-        <div class="sidebar-section">
-            <h3 class="sidebar-title">EQUIPO</h3>
-            <div class="team-sidebar-info">
-                <% if (team.logo_path) { %>
-                    <img src="<%= team.logo_path %>" alt="<%= team.name %>" class="team-logo-large">
-                <% } else { %>
-                    <div class="team-logo-placeholder-large"><%= team.tag %></div>
-                <% } %>
-                <div class="team-name-large"><%= team.name %></div>
-                <div class="team-tag">[<%= team.tag %>]</div>
-                <div class="team-creator">Creado por: <%= team.creator_username %></div>
-                <div class="team-created-at">Creado el: <%= new Date(team.created_at).toLocaleDateString() %></div>
-            </div>
-        </div>
-        
-        <% if (isTeamCaptain) { %>
-            <div class="sidebar-section">
-                <h3 class="sidebar-title">ACCIONES</h3>
-                <div class="team-actions">
-                    <button id="invitePlayerBtn" class="action-btn">Invitar Jugador</button>
-                    <button id="editTeamBtn" class="action-btn">Editar Equipo</button>
-                    <button id="leaveTeamBtn" class="action-btn danger">Eliminar Equipo</button>
-                </div>
-            </div>
-        <% } else if (isTeamMember) { %>
-            <div class="sidebar-section">
-                <h3 class="sidebar-title">ACCIONES</h3>
-                <div class="team-actions">
-                    <button id="leaveTeamBtn" class="action-btn danger">Abandonar Equipo</button>
-                </div>
-            </div>
-        <% } %>
-        
-        <% if (notificationCount > 0) { %>
-            <div class="sidebar-section">
-                <h3 class="sidebar-title">NOTIFICACIONES</h3>
-                <div class="notification-badge">
-                    <a href="/notifications" class="notification-link">
-                        Tienes <%= notificationCount %> notificaciones nuevas
-                    </a>
-                </div>
-            </div>
-        <% } %>
+<div class="tds-main-container">
+    <!-- Background Effects -->
+    <div class="tds-bg-effects">
+        <div class="tds-gradient-orb-1"></div>
+        <div class="tds-gradient-orb-2"></div>
+        <div class="tds-gradient-orb-3"></div>
     </div>
     
-    <div class="content">
-        <% if (message) { %>
-            <div class="alert alert-success">
-                <% if (message === 'player-invited') { %>
-                    Jugador invitado correctamente al equipo.
-                <% } else if (message === 'member-removed') { %>
-                    Miembro eliminado correctamente del equipo.
-                <% } else if (message === 'invitation-sent') { %>
-                    Invitación enviada correctamente. El jugador recibirá una notificación.
-                <% } else if (message === 'invitation-canceled') { %>
-                    Invitación cancelada correctamente.
-                <% } else { %>
-                    <%= message %>
-                <% } %>
-            </div>
-        <% } %>
-        
-        <% if (error) { %>
-            <div class="alert alert-error">
-                <% if (error === 'not-team-captain') { %>
-                    Solo el capitán del equipo puede realizar esta acción.
-                <% } else if (error === 'player-not-found') { %>
-                    El jugador no existe en la plataforma.
-                <% } else if (error === 'player-already-in-team') { %>
-                    Este jugador ya es miembro del equipo.
-                <% } else if (error === 'role-already-taken') { %>
-                    Este rol ya está ocupado por otro miembro del equipo.
-                <% } else if (error === 'cannot-remove-captain') { %>
-                    No puedes eliminar al capitán del equipo.
-                <% } else if (error === 'captain-cannot-leave') { %>
-                    El capitán no puede abandonar el equipo. Debes eliminarlo.
-                <% } else if (error === 'team-in-tournament') { %>
-                    No puedes eliminar un equipo que está inscrito en un torneo.
-                <% } else if (error === 'invitation-already-sent') { %>
-                    Ya existe una invitación pendiente para este jugador.
-                <% } else if (error === 'invitation-not-found') { %>
-                    La invitación no existe o ya no está disponible.
-                <% } else { %>
-                    <%= error %>
-                <% } %>
-            </div>
-        <% } %>
-        
-        <div class="top-bar">
-            <h2 class="page-title"><%= team.name %> [<%= team.tag %>]</h2>
-            <div class="view-options">
-                <a href="/tournament" class="nav-link">← Volver a Torneos</a>
-            </div>
-        </div>
-        
-        <div class="team-content">
-            <div class="team-description">
-                <h3>Descripción</h3>
-                <p><%= team.description || 'Este equipo no tiene descripción.' %></p>
+    <div class="tds-content-wrapper">
+        <!-- Sidebar -->
+        <div class="tds-sidebar">
+            <!-- Team Info Section -->
+            <div class="tds-sidebar-section">
+                <div class="tds-section-header">
+                    <div class="tds-section-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="tds-section-title">INFORMACIÓN DEL EQUIPO</h3>
+                </div>
+                
+                <div class="tds-team-info-card">
+                    <div class="tds-team-logo-container">
+                        <% if (team.logo_path) { %>
+                            <img src="<%= team.logo_path %>" alt="<%= team.name %>" class="tds-team-logo">
+                        <% } else { %>
+                            <div class="tds-team-logo-placeholder">
+                                <span><%= team.tag %></span>
+                            </div>
+                        <% } %>
+                        <div class="tds-team-logo-overlay">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="tds-team-details">
+                        <div class="tds-team-name"><%= team.name %></div>
+                        <div class="tds-team-tag">[<%= team.tag %>]</div>
+                        
+                        <div class="tds-team-meta">
+                            <div class="tds-meta-item">
+                                <i class="fas fa-crown"></i>
+                                <span>Creado por: <%= team.creator_username %></span>
+                            </div>
+                            <div class="tds-meta-item">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>Creado el: <%= new Date(team.created_at).toLocaleDateString() %></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
             
-            <% if (isTeamCaptain && pendingInvitations && pendingInvitations.length > 0) { %>
-                <div class="pending-invitations-section">
-                    <h3>Invitaciones Pendientes (<%= pendingInvitations.length %>)</h3>
-                    <div class="invitations-list">
-                        <% pendingInvitations.forEach(invitation => { %>
-                            <div class="invitation-card">
-                                <div class="invitation-info">
-                                    <div class="invitation-player"><%= invitation.invited_username %></div>
-                                    <div class="invitation-role">Rol: <%= invitation.role %></div>
-                                    <div class="invitation-date">Enviada: <%= new Date(invitation.invitation_date).toLocaleDateString() %></div>
-                                </div>
-                                <div class="invitation-actions">
-                                    <form action="/cancel-invitation" method="POST" class="inline-form">
-                                        <input type="hidden" name="invitation_id" value="<%= invitation.id_invitation %>">
-                                        <input type="hidden" name="team_id" value="<%= team.id_team %>">
-                                        <button type="submit" class="btn-icon cancel-invitation" title="Cancelar invitación" onclick="return confirm('¿Estás seguro de que deseas cancelar esta invitación?')">
-                                            <i class="fas fa-times"></i> Cancelar
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        <% }); %>
+            <!-- Actions Section -->
+            <% if (isTeamCaptain) { %>
+                <div class="tds-sidebar-section">
+                    <div class="tds-section-header">
+                        <div class="tds-section-icon">
+                            <i class="fas fa-cog"></i>
+                        </div>
+                        <h3 class="tds-section-title">ACCIONES DE CAPITÁN</h3>
+                    </div>
+                    
+                    <div class="tds-action-buttons">
+                        <button id="tdsInvitePlayerBtn" class="tds-action-btn tds-primary">
+                            <i class="fas fa-user-plus"></i>
+                            <span>Invitar Jugador</span>
+                        </button>
+                        <button id="tdsEditTeamBtn" class="tds-action-btn tds-secondary">
+                            <i class="fas fa-edit"></i>
+                            <span>Editar Equipo</span>
+                        </button>
+                        <button id="tdsLeaveTeamBtn" class="tds-action-btn tds-danger">
+                            <i class="fas fa-trash-alt"></i>
+                            <span>Eliminar Equipo</span>
+                        </button>
+                    </div>
+                </div>
+            <% } else if (isTeamMember) { %>
+                <div class="tds-sidebar-section">
+                    <div class="tds-section-header">
+                        <div class="tds-section-icon">
+                            <i class="fas fa-door-open"></i>
+                        </div>
+                        <h3 class="tds-section-title">ACCIONES</h3>
+                    </div>
+                    
+                    <div class="tds-action-buttons">
+                        <button id="tdsLeaveTeamBtn" class="tds-action-btn tds-danger">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Abandonar Equipo</span>
+                        </button>
                     </div>
                 </div>
             <% } %>
             
-            <div class="team-members-section">
-                <h3>Miembros (<%= members.length %>)</h3>
-                <!-- Añadir botones para eliminar miembros del equipo -->
-                <div class="members-list">
-                    <% members.forEach(member => { %>
-                        <div class="member-card">
-                            <div class="member-info">
-                                <div class="member-name"><%= member.username %></div>
-                                <div class="member-role"><%= member.role || 'Miembro' %></div>
-                                <div class="member-reputation">Reputación: <%= member.reputation %></div>
-                                <div class="member-joined">Unido: <%= new Date(member.joined_at).toLocaleDateString() %></div>
-                            </div>
-                            <div class="member-status">
-                                <% if (member.is_captain) { %>
-                                    <span class="captain-badge">Capitán</span>
-                                <% } else if (isTeamCaptain) { %>
-                                    <form action="/remove-team-member" method="POST" class="inline-form">
-                                        <input type="hidden" name="team_id" value="<%= team.id_team %>">
-                                        <input type="hidden" name="member_id" value="<%= member.id_summoner %>">
-                                        <button type="submit" class="btn-icon remove-member" title="Eliminar miembro" onclick="return confirm('¿Estás seguro de que deseas eliminar a este miembro?')">
-                                            <i class="fas fa-times"></i>
-                                        </button>
-                                    </form>
-                                <% } %>
-                            </div>
+            <!-- Notifications Section -->
+            <% if (notificationCount > 0) { %>
+                <div class="tds-sidebar-section">
+                    <div class="tds-section-header">
+                        <div class="tds-section-icon">
+                            <i class="fas fa-bell"></i>
                         </div>
-                    <% }); %>
+                        <h3 class="tds-section-title">NOTIFICACIONES</h3>
+                    </div>
+                    
+                    <div class="tds-notification-card">
+                        <a href="/notifications" class="tds-notification-link">
+                            <div class="tds-notification-icon">
+                                <i class="fas fa-bell"></i>
+                                <span class="tds-notification-badge"><%= notificationCount %></span>
+                            </div>
+                            <div class="tds-notification-text">
+                                Tienes <%= notificationCount %> notificaciones nuevas
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="tds-main-content">
+            <!-- Header Navigation -->
+            <div class="tds-top-navigation">
+                <div class="tds-nav-content">
+                    <h1 class="tds-page-title"><%= team.name %> [<%= team.tag %>]</h1>
+                    <a href="/tournament" class="tds-back-link">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Volver a Torneos</span>
+                    </a>
                 </div>
             </div>
             
-            <div class="team-tournaments-section">
-                <h3>Torneos (<%= tournaments.length %>)</h3>
-                <% if (tournaments.length > 0) { %>
-                    <div class="tournaments-list">
-                        <% tournaments.forEach(tournament => { %>
-                            <div class="tournament-card-small">
-                                <div class="tournament-card-header">
-                                    <% if (tournament.image_path) { %>
-                                        <img src="<%= tournament.image_path %>" alt="<%= tournament.name %>" class="tournament-image-small">
-                                    <% } else { %>
-                                        <img src="/images/league_of_legends-icon.png" alt="Tournament" class="tournament-image-small">
-                                    <% } %>
-                                    <div class="tournament-name-small"><%= tournament.name %></div>
+            <!-- Alerts -->
+            <% if (message) { %>
+                <div class="tds-alert tds-alert-success">
+                    <div class="tds-alert-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="tds-alert-content">
+                        <% if (message === 'player-invited') { %>
+                            <strong>¡Éxito!</strong> Jugador invitado correctamente al equipo.
+                        <% } else if (message === 'member-removed') { %>
+                            <strong>¡Éxito!</strong> Miembro eliminado correctamente del equipo.
+                        <% } else if (message === 'invitation-sent') { %>
+                            <strong>¡Invitación enviada!</strong> El jugador recibirá una notificación.
+                        <% } else if (message === 'invitation-canceled') { %>
+                            <strong>¡Invitación cancelada!</strong> La invitación ha sido cancelada correctamente.
+                        <% } else { %>
+                            <%= message %>
+                        <% } %>
+                    </div>
+                </div>
+            <% } %>
+            
+            <% if (error) { %>
+                <div class="tds-alert tds-alert-error">
+                    <div class="tds-alert-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="tds-alert-content">
+                        <% if (error === 'not-team-captain') { %>
+                            <strong>Error:</strong> Solo el capitán del equipo puede realizar esta acción.
+                        <% } else if (error === 'player-not-found') { %>
+                            <strong>Error:</strong> El jugador no existe en la plataforma.
+                        <% } else if (error === 'player-already-in-team') { %>
+                            <strong>Error:</strong> Este jugador ya es miembro del equipo.
+                        <% } else if (error === 'role-already-taken') { %>
+                            <strong>Error:</strong> Este rol ya está ocupado por otro miembro del equipo.
+                        <% } else if (error === 'cannot-remove-captain') { %>
+                            <strong>Error:</strong> No puedes eliminar al capitán del equipo.
+                        <% } else if (error === 'captain-cannot-leave') { %>
+                            <strong>Error:</strong> El capitán no puede abandonar el equipo. Debes eliminarlo.
+                        <% } else if (error === 'team-in-tournament') { %>
+                            <strong>Error:</strong> No puedes eliminar un equipo que está inscrito en un torneo.
+                        <% } else if (error === 'invitation-already-sent') { %>
+                            <strong>Error:</strong> Ya existe una invitación pendiente para este jugador.
+                        <% } else if (error === 'invitation-not-found') { %>
+                            <strong>Error:</strong> La invitación no existe o ya no está disponible.
+                        <% } else { %>
+                            <strong>Error:</strong> <%= error %>
+                        <% } %>
+                    </div>
+                </div>
+            <% } %>
+            
+            <!-- Content Sections -->
+            <div class="tds-content-sections">
+                <!-- Team Description -->
+                <div class="tds-content-section">
+                    <div class="tds-section-card">
+                        <div class="tds-card-header">
+                            <div class="tds-card-icon">
+                                <i class="fas fa-align-left"></i>
+                            </div>
+                            <h3>Descripción del Equipo</h3>
+                        </div>
+                        <div class="tds-card-content">
+                            <p class="tds-team-description">
+                                <%= team.description || 'Este equipo no tiene descripción.' %>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pending Invitations -->
+                <% if (isTeamCaptain && pendingInvitations && pendingInvitations.length > 0) { %>
+                    <div class="tds-content-section">
+                        <div class="tds-section-card">
+                            <div class="tds-card-header">
+                                <div class="tds-card-icon">
+                                    <i class="fas fa-clock"></i>
                                 </div>
-                                <div class="tournament-card-info">
-                                    <div class="tournament-date">
-                                        <span class="label">Fecha:</span> 
-                                        <%= new Date(tournament.start_date).toLocaleDateString() %>
-                                    </div>
-                                    <div class="tournament-format">
-                                        <span class="label">Formato:</span> 
-                                        <%= tournament.team_size %> - <%= tournament.format %>
-                                    </div>
-                                    <div class="tournament-prize">
-                                        <span class="label">Premio:</span> 
-                                        <%= tournament.prize_pool %> Credits
-                                    </div>
-                                </div>
-                                <div class="tournament-card-footer">
-                                    <a href="/tournament/<%= tournament.id_tournament %>" class="view-tournament-btn">Ver Torneo</a>
+                                <h3>Invitaciones Pendientes (<%= pendingInvitations.length %>)</h3>
+                            </div>
+                            <div class="tds-card-content">
+                                <div class="tds-invitations-grid">
+                                    <% pendingInvitations.forEach(invitation => { %>
+                                        <div class="tds-invitation-card">
+                                            <div class="tds-invitation-header">
+                                                <div class="tds-invitation-avatar">
+                                                    <i class="fas fa-user"></i>
+                                                </div>
+                                                <div class="tds-invitation-info">
+                                                    <div class="tds-invitation-player"><%= invitation.invited_username %></div>
+                                                    <div class="tds-invitation-role">Rol: <%= invitation.role %></div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="tds-invitation-meta">
+                                                <div class="tds-invitation-date">
+                                                    <i class="fas fa-calendar"></i>
+                                                    <span>Enviada: <%= new Date(invitation.invitation_date).toLocaleDateString() %></span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="tds-invitation-actions">
+                                                <form action="/cancel-invitation" method="POST" class="tds-inline-form">
+                                                    <input type="hidden" name="invitation_id" value="<%= invitation.id_invitation %>">
+                                                    <input type="hidden" name="team_id" value="<%= team.id_team %>">
+                                                    <button type="submit" class="tds-btn tds-btn-danger-outline" 
+                                                            onclick="return confirm('¿Estás seguro de que deseas cancelar esta invitación?')">
+                                                        <i class="fas fa-times"></i>
+                                                        <span>Cancelar</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    <% }); %>
                                 </div>
                             </div>
-                        <% }); %>
-                    </div>
-                <% } else { %>
-                    <div class="no-tournaments">
-                        <p>Este equipo no está inscrito en ningún torneo.</p>
-                        <a href="/tournament" class="btn btn-primary">Ver Torneos Disponibles</a>
+                        </div>
                     </div>
                 <% } %>
+                
+                <!-- Team Members -->
+                <div class="tds-content-section">
+                    <div class="tds-section-card">
+                        <div class="tds-card-header">
+                            <div class="tds-card-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3>Miembros del Equipo (<%= members.length %>)</h3>
+                        </div>
+                        <div class="tds-card-content">
+                            <div class="tds-members-grid">
+                                <% members.forEach(member => { %>
+                                    <div class="tds-member-card">
+                                        <div class="tds-member-header">
+                                            <div class="tds-member-avatar">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <div class="tds-member-info">
+                                                <div class="tds-member-name"><%= member.username %></div>
+                                                <div class="tds-member-role"><%= member.role || 'Miembro' %></div>
+                                            </div>
+                                            <% if (member.is_captain) { %>
+                                                <div class="tds-captain-badge">
+                                                    <i class="fas fa-crown"></i>
+                                                    <span>Capitán</span>
+                                                </div>
+                                            <% } %>
+                                        </div>
+                                        
+                                        <div class="tds-member-stats">
+                                            <div class="tds-stat-item">
+                                                <i class="fas fa-thumbs-up"></i>
+                                                <span>Reputación: <%= member.reputation %></span>
+                                            </div>
+                                            <div class="tds-stat-item">
+                                                <i class="fas fa-calendar-plus"></i>
+                                                <span>Unido: <%= new Date(member.joined_at).toLocaleDateString() %></span>
+                                            </div>
+                                        </div>
+                                        
+                                        <% if (!member.is_captain && isTeamCaptain) { %>
+                                            <div class="tds-member-actions">
+                                                <form action="/remove-team-member" method="POST" class="tds-inline-form">
+                                                    <input type="hidden" name="team_id" value="<%= team.id_team %>">
+                                                    <input type="hidden" name="member_id" value="<%= member.id_summoner %>">
+                                                    <button type="submit" class="tds-btn tds-btn-danger-outline tds-btn-sm" 
+                                                            onclick="return confirm('¿Estás seguro de que deseas eliminar a este miembro?')">
+                                                        <i class="fas fa-user-minus"></i>
+                                                        <span>Eliminar</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Team Tournaments -->
+                <div class="tds-content-section">
+                    <div class="tds-section-card">
+                        <div class="tds-card-header">
+                            <div class="tds-card-icon">
+                                <i class="fas fa-trophy"></i>
+                            </div>
+                            <h3>Torneos del Equipo (<%= tournaments.length %>)</h3>
+                        </div>
+                        <div class="tds-card-content">
+                            <% if (tournaments.length > 0) { %>
+                                <div class="tds-tournaments-grid">
+                                    <% tournaments.forEach(tournament => { %>
+                                        <div class="tds-tournament-card">
+                                            <div class="tds-tournament-header">
+                                                <div class="tds-tournament-image">
+                                                    <% if (tournament.image_path) { %>
+                                                        <img src="<%= tournament.image_path %>" alt="<%= tournament.name %>">
+                                                    <% } else { %>
+                                                        <img src="/images/league_of_legends-icon.png" alt="Tournament">
+                                                    <% } %>
+                                                </div>
+                                                <div class="tds-tournament-info">
+                                                    <div class="tds-tournament-name"><%= tournament.name %></div>
+                                                    <div class="tds-tournament-format"><%= tournament.team_size %> - <%= tournament.format %></div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="tds-tournament-details">
+                                                <div class="tds-tournament-detail">
+                                                    <i class="fas fa-calendar"></i>
+                                                    <span><%= new Date(tournament.start_date).toLocaleDateString() %></span>
+                                                </div>
+                                                <div class="tds-tournament-detail">
+                                                    <i class="fas fa-coins"></i>
+                                                    <span><%= tournament.prize_pool %> Créditos</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="tds-tournament-actions">
+                                                <a href="/tournament/<%= tournament.id_tournament %>" class="tds-btn tds-btn-primary tds-btn-sm">
+                                                    <i class="fas fa-eye"></i>
+                                                    <span>Ver Torneo</span>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    <% }); %>
+                                </div>
+                            <% } else { %>
+                                <div class="tds-empty-state">
+                                    <div class="tds-empty-icon">
+                                        <i class="fas fa-trophy"></i>
+                                    </div>
+                                    <h4>No hay torneos</h4>
+                                    <p>Este equipo no está inscrito en ningún torneo.</p>
+                                    <a href="/tournament" class="tds-btn tds-btn-primary">
+                                        <i class="fas fa-search"></i>
+                                        <span>Ver Torneos Disponibles</span>
+                                    </a>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal para invitar jugador -->
-<div id="invitePlayerModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Invitar Jugador</h3>
-            <span class="close">&times;</span>
+<!-- Invite Player Modal -->
+<div id="tdsInvitePlayerModal" class="tds-modal">
+    <div class="tds-modal-overlay"></div>
+    <div class="tds-modal-container">
+        <div class="tds-modal-header">
+            <div class="tds-modal-title">
+                <i class="fas fa-user-plus"></i>
+                <h3>Invitar Jugador</h3>
+            </div>
+            <button class="tds-modal-close">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <div class="modal-body">
-            
-<form id="invitePlayerForm" action="/invite-player" method="POST">
-    <input type="hidden" name="team_id" value="<%= team.id_team %>">
-    
-    <div class="form-group">
-        <label for="player_username">Nombre de Usuario:</label>
-        <input type="text" id="player_username" name="player_username" required>
-    </div>
-    
-    <div class="form-group">
-        <label for="player_role">Rol en el Equipo:</label>
-        <select id="player_role" name="player_role" required>
-            <option value="" disabled selected>Selecciona un rol</option>
-            <% 
-                // Verificar qué roles ya están ocupados
-                const roles = ['Top', 'Jungle', 'Mid', 'ADC', 'Support'];
-                const occupiedRoles = members.map(member => member.role);
-                
-                // Mostrar solo los roles disponibles
-                roles.forEach(role => {
-                    if (!occupiedRoles.includes(role)) {
-            %>
-                <option value="<%= role %>"><%= role %></option>
-            <% 
-                    } else {
-            %>
-                <option value="<%= role %>" disabled class="role-occupied"><%= role %> (Ocupado)</option>
-            <%
-                    }
-                });
-            %>
-        </select>
-        <small class="form-help">Solo se permite un jugador por rol.</small>
-    </div>
-    
-    <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Enviar Invitación</button>
-        <button type="button" class="btn btn-outline close-modal">Cancelar</button>
-    </div>
-</form>
-
-        </div>
-    </div>
-</div>
-
-<!-- Modal para editar equipo -->
-<div id="editTeamModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>Editar Equipo</h3>
-            <span class="close">&times;</span>
-        </div>
-        <div class="modal-body">
-            <form id="editTeamForm" action="/edit-team" method="POST" enctype="multipart/form-data">
+        <div class="tds-modal-body">
+            <form id="tdsInvitePlayerForm" action="/invite-player" method="POST" class="tds-form">
                 <input type="hidden" name="team_id" value="<%= team.id_team %>">
                 
-                <div class="form-group">
-                    <label for="team_name">Nombre del Equipo:</label>
-                    <input type="text" id="team_name" name="team_name" value="<%= team.name %>" required>
+                <div class="tds-form-group">
+                    <label for="tdsPlayerUsername" class="tds-form-label">
+                        <i class="fas fa-user"></i>
+                        Nombre de Usuario
+                    </label>
+                    <div class="tds-input-wrapper">
+                        <input type="text" id="tdsPlayerUsername" name="player_username" class="tds-form-input" 
+                               placeholder="Ingresa el nombre de usuario" required>
+                        <div class="tds-input-focus-ring"></div>
+                    </div>
                 </div>
                 
-                <div class="form-group">
-                    <label for="team_tag">Tag del Equipo (2-5 caracteres):</label>
-                    <input type="text" id="team_tag" name="team_tag" value="<%= team.tag %>" maxlength="5" minlength="2" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="team_description">Descripción:</label>
-                    <textarea id="team_description" name="team_description" rows="3"><%= team.description %></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="team_logo">Logo del Equipo:</label>
-                    <input type="file" id="team_logo" name="team_logo" accept="image/*">
-                    <% if (team.logo_path) { %>
-                        <div class="current-logo">
-                            <p>Logo actual:</p>
-                            <img src="<%= team.logo_path %>" alt="Current Logo" class="logo-preview">
+                <div class="tds-form-group">
+                    <label for="tdsPlayerRole" class="tds-form-label">
+                        <i class="fas fa-chess"></i>
+                        Rol en el Equipo
+                    </label>
+                    <div class="tds-select-wrapper">
+                        <select id="tdsPlayerRole" name="player_role" class="tds-form-select" required>
+                            <option value="" disabled selected>Selecciona un rol</option>
+                            <% 
+                                const roles = ['Top', 'Jungle', 'Mid', 'ADC', 'Support'];
+                                const occupiedRoles = members.map(member => member.role);
+                                
+                                roles.forEach(role => {
+                                    if (!occupiedRoles.includes(role)) {
+                            %>
+                                <option value="<%= role %>"><%= role %></option>
+                            <% 
+                                    } else {
+                                        const memberWithRole = members.find(m => m.role === role);
+                                        const memberName = memberWithRole ? memberWithRole.username : '';
+                                        const isCaptain = memberWithRole && memberWithRole.is_captain;
+                                        const roleLabel = isCaptain ? `${role} (Capitán - ${memberName})` : `${role} (Ocupado - ${memberName})`;
+                            %>
+                                <option value="<%= role %>" disabled class="tds-role-occupied"><%= roleLabel %></option>
+                            <%
+                                    }
+                                });
+                            %>
+                        </select>
+                        <div class="tds-select-arrow">
+                            <i class="fas fa-chevron-down"></i>
                         </div>
-                    <% } %>
+                        <div class="tds-select-focus-ring"></div>
+                    </div>
+                    <div class="tds-form-help">Solo se permite un jugador por rol.</div>
                 </div>
                 
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-                    <button type="button" class="btn btn-outline close-modal">Cancelar</button>
+                <div class="tds-form-actions">
+                    <button type="submit" class="tds-btn tds-btn-primary">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Enviar Invitación</span>
+                        <div class="tds-btn-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                    </button>
+                    <button type="button" class="tds-btn tds-btn-outline tds-close-modal">
+                        <i class="fas fa-times"></i>
+                        <span>Cancelar</span>
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Modal para confirmar abandono del equipo -->
-<div id="leaveTeamModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><%= isTeamCaptain ? 'Eliminar Equipo' : 'Abandonar Equipo' %></h3>
-            <span class="close">&times;</span>
+<!-- Edit Team Modal -->
+<div id="tdsEditTeamModal" class="tds-modal">
+    <div class="tds-modal-overlay"></div>
+    <div class="tds-modal-container">
+        <div class="tds-modal-header">
+            <div class="tds-modal-title">
+                <i class="fas fa-edit"></i>
+                <h3>Editar Equipo</h3>
+            </div>
+            <button class="tds-modal-close">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <div class="modal-body">
-            <% if (isTeamCaptain) { %>
-                <p>¿Estás seguro de que deseas eliminar el equipo "<%= team.name %>"?</p>
-                <p class="warning">Esta acción no se puede deshacer. Todos los miembros serán removidos y el equipo será eliminado permanentemente.</p>
+        <div class="tds-modal-body">
+            <form id="tdsEditTeamForm" action="/edit-team" method="POST" enctype="multipart/form-data" class="tds-form">
+                <input type="hidden" name="team_id" value="<%= team.id_team %>">
                 
-                <div class="form-actions">
-                    <form action="/delete-team" method="POST">
-                        <input type="hidden" name="team_id" value="<%= team.id_team %>">
-                        <button type="submit" class="btn btn-danger">Eliminar Equipo</button>
-                        <button type="button" class="btn btn-outline close-modal">Cancelar</button>
-                    </form>
+                <div class="tds-form-group">
+                    <label for="tdsTeamName" class="tds-form-label">
+                        <i class="fas fa-font"></i>
+                        Nombre del Equipo
+                    </label>
+                    <div class="tds-input-wrapper">
+                        <input type="text" id="tdsTeamName" name="team_name" class="tds-form-input" 
+                               value="<%= team.name %>" placeholder="Nombre del equipo" required>
+                        <div class="tds-input-focus-ring"></div>
+                    </div>
                 </div>
-            <% } else { %>
-                <p>¿Estás seguro de que deseas abandonar el equipo "<%= team.name %>"?</p>
                 
-                <div class="form-actions">
-                    <form action="/leave-team" method="POST">
-                        <input type="hidden" name="team_id" value="<%= team.id_team %>">
-                        <button type="submit" class="btn btn-danger">Abandonar Equipo</button>
-                        <button type="button" class="btn btn-outline close-modal">Cancelar</button>
-                    </form>
+                <div class="tds-form-group">
+                    <label for="tdsTeamTag" class="tds-form-label">
+                        <i class="fas fa-tag"></i>
+                        Tag del Equipo
+                    </label>
+                    <div class="tds-input-wrapper">
+                        <input type="text" id="tdsTeamTag" name="team_tag" class="tds-form-input" 
+                               value="<%= team.tag %>" placeholder="TAG" maxlength="5" minlength="2" required>
+                        <div class="tds-input-focus-ring"></div>
+                    </div>
+                    <div class="tds-form-help">Entre 2 y 5 caracteres</div>
                 </div>
-            <% } %>
+                
+                <div class="tds-form-group">
+                    <label for="tdsTeamDescription" class="tds-form-label">
+                        <i class="fas fa-align-left"></i>
+                        Descripción
+                    </label>
+                    <div class="tds-textarea-wrapper">
+                        <textarea id="tdsTeamDescription" name="team_description" class="tds-form-textarea" 
+                                  placeholder="Describe tu equipo..." rows="3"><%= team.description %></textarea>
+                        <div class="tds-textarea-focus-ring"></div>
+                    </div>
+                </div>
+                
+                <div class="tds-form-group">
+                    <label for="tdsTeamLogo" class="tds-form-label">
+                        <i class="fas fa-image"></i>
+                        Logo del Equipo
+                    </label>
+                    
+                    <% if (team.logo_path) { %>
+                        <div class="tds-current-logo-section">
+                            <div class="tds-current-logo-header">
+                                <span class="tds-current-logo-label">Logo actual:</span>
+                            </div>
+                            <div class="tds-current-logo-container">
+                                <img src="<%= team.logo_path %>" alt="Current Logo" class="tds-current-logo">
+                            </div>
+                        </div>
+                    <% } %>
+                    
+                    <div class="tds-file-upload-area" id="tdsFileUploadArea">
+                        <input type="file" id="tdsTeamLogo" name="team_logo" accept="image/*" class="tds-file-input">
+                        <div class="tds-file-upload-content">
+                            <div class="tds-file-upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <div class="tds-file-upload-text">
+                                <span class="tds-file-upload-main">Arrastra tu logo aquí o haz clic para seleccionar</span>
+                                <span class="tds-file-upload-sub">PNG, JPG, GIF hasta 5MB</span>
+                            </div>
+                        </div>
+                        <div class="tds-file-preview" id="tdsFilePreview" style="display: none;">
+                            <img id="tdsPreviewImage" src="/placeholder.svg" alt="Preview">
+                            <div class="tds-file-info">
+                                <span id="tdsFileName"></span>
+                                <button type="button" class="tds-file-remove" id="tdsRemoveFile">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="tds-form-actions">
+                    <button type="submit" class="tds-btn tds-btn-primary">
+                        <i class="fas fa-save"></i>
+                        <span>Guardar Cambios</span>
+                        <div class="tds-btn-loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                        </div>
+                    </button>
+                    <button type="button" class="tds-btn tds-btn-outline tds-close-modal">
+                        <i class="fas fa-times"></i>
+                        <span>Cancelar</span>
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
 
-<style>
-/* Estilos para la página de detalles del equipo */
-.team-sidebar-info {
-    text-align: center;
-    padding: 15px;
-}
-
-.team-logo-large, .team-logo-placeholder-large {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    margin: 0 auto 15px;
-}
-
-.team-logo-large {
-    object-fit: cover;
-}
-
-.team-logo-placeholder-large {
-    background-color: #8a2be2;
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    font-size: 2rem;
-}
-
-.team-name-large {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: 5px;
-}
-
-.team-tag {
-    font-size: 1.2rem;
-    color: #8a2be2;
-    margin-bottom: 15px;
-}
-
-.team-creator, .team-created-at {
-    color: #aaa;
-    font-size: 0.9rem;
-    margin-bottom: 5px;
-}
-
-.team-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.action-btn {
-    padding: 10px;
-    border-radius: 4px;
-    background-color: #2a2a2a;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.action-btn:hover {
-    background-color: #3a3a3a;
-}
-
-.action-btn.danger {
-    background-color: rgba(255, 0, 0, 0.2);
-    color: #ff6b6b;
-}
-
-.action-btn.danger:hover {
-    background-color: rgba(255, 0, 0, 0.3);
-}
-
-.team-content {
-    margin-top: 20px;
-}
-
-.team-description {
-    background-color: #1a1a1a;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 30px;
-}
-
-.team-description h3 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: #fff;
-}
-
-.team-description p {
-    color: #ccc;
-    line-height: 1.6;
-}
-
-.team-members-section, .team-tournaments-section, .pending-invitations-section {
-    margin-bottom: 30px;
-}
-
-.team-members-section h3, .team-tournaments-section h3, .pending-invitations-section h3 {
-    margin-bottom: 20px;
-    color: #fff;
-}
-
-.members-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 15px;
-}
-
-.member-card {
-    background-color: #1a1a1a;
-    border-radius: 8px;
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-}
-
-.member-info {
-    flex-grow: 1;
-}
-
-.member-name {
-    font-weight: 600;
-    color: #fff;
-    margin-bottom: 5px;
-}
-
-.member-role {
-    color: #8a2be2;
-    font-size: 0.9rem;
-    margin-bottom: 5px;
-}
-
-.member-reputation, .member-joined {
-    color: #aaa;
-    font-size: 0.8rem;
-    margin-bottom: 3px;
-}
-
-.captain-badge {
-    background-color: #8a2be2;
-    color: white;
-    padding: 3px 8px;
-    border-radius: 10px;
-    font-size: 0.8rem;
-}
-
-.tournaments-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 15px;
-}
-
-.tournament-card-small {
-    background-color: #1a1a1a;
-    border-radius: 8px;
-    overflow: hidden;
-}
-
-.tournament-card-header {
-    background-color: #2a2a2a;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-}
-
-.tournament-image-small {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    margin-right: 10px;
-    object-fit: cover;
-}
-
-.tournament-name-small {
-    color: #fff;
-    font-weight: 600;
-}
-
-.tournament-card-info {
-    padding: 15px;
-}
-
-.tournament-date, .tournament-format, .tournament-prize {
-    color: #ccc;
-    margin-bottom: 5px;
-    font-size: 0.9rem;
-}
-
-.label {
-    color: #888;
-    margin-right: 5px;
-}
-
-.tournament-card-footer {
-    padding: 10px 15px;
-    border-top: 1px solid #333;
-    text-align: right;
-}
-
-.view-tournament-btn {
-    color: #8a2be2;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-.view-tournament-btn:hover {
-    text-decoration: underline;
-}
-
-.no-tournaments {
-    background-color: #1a1a1a;
-    padding: 20px;
-    border-radius: 8px;
-    text-align: center;
-}
-
-.no-tournaments p {
-    color: #ccc;
-    margin-bottom: 15px;
-}
-
-.warning {
-    color: #ff6b6b;
-    margin: 15px 0;
-}
-
-.current-logo {
-    margin-top: 10px;
-}
-
-.current-logo p {
-    color: #ccc;
-    margin-bottom: 5px;
-}
-
-.logo-preview {
-    max-width: 100px;
-    max-height: 100px;
-    border-radius: 8px;
-}
-
-.btn-danger {
-    background-color: #ff4d4d;
-    color: white;
-}
-
-.btn-danger:hover {
-    background-color: #ff6666;
-}
-
-/* Estilos para el formulario de ayuda */
-.form-help {
-    font-size: 0.8rem;
-    color: #888;
-    margin-top: 5px;
-    display: block;
-}
-
-/* Estilos para formularios inline */
-.inline-form {
-    display: inline;
-}
-
-/* Estilos para botones de icono */
-.btn-icon {
-    background: none;
-    border: none;
-    color: #ff6b6b;
-    cursor: pointer;
-    font-size: 1rem;
-    padding: 5px;
-    transition: color 0.2s ease;
-}
-
-.btn-icon:hover {
-    color: #ff4d4d;
-}
-
-.remove-member {
-    margin-left: 10px;
-}
-
-/* Estilos para mensajes de alerta */
-.alert {
-    padding: 15px;
-    border-radius: 4px;
-    margin-bottom: 20px;
-}
-
-.alert-success {
-    background-color: rgba(0, 128, 0, 0.2);
-    border-left: 4px solid green;
-    color: #ccc;
-}
-
-.alert-error {
-    background-color: rgba(255, 0, 0, 0.2);
-    border-left: 4px solid red;
-    color: #ccc;
-}
-
-/* Estilos para roles ocupados */
-.role-occupied {
-    color: #888;
-    font-style: italic;
-}
-
-/* Estilos para invitaciones pendientes */
-.pending-invitations-section {
-    margin-bottom: 30px;
-}
-
-.pending-invitations-section h3 {
-    margin-bottom: 20px;
-    color: #fff;
-}
-
-.invitations-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 15px;
-    margin-bottom: 20px;
-}
-
-.invitation-card {
-    background-color: #1a1a1a;
-    border-radius: 8px;
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-    border-left: 3px solid #8a2be2;
-}
-
-.invitation-info {
-    flex-grow: 1;
-}
-
-.invitation-player {
-    font-weight: 600;
-    color: #fff;
-    margin-bottom: 5px;
-}
-
-.invitation-role {
-    color: #8a2be2;
-    font-size: 0.9rem;
-    margin-bottom: 5px;
-}
-
-.invitation-date {
-    color: #aaa;
-    font-size: 0.8rem;
-}
-
-.invitation-actions {
-    display: flex;
-    align-items: center;
-}
-
-.cancel-invitation {
-    color: #ff6b6b;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-.cancel-invitation:hover {
-    color: #ff4d4d;
-}
-
-/* Estilos para notificaciones */
-.notification-badge {
-    background-color: #8a2be2;
-    padding: 10px;
-    border-radius: 4px;
-    text-align: center;
-    margin-top: 10px;
-}
-
-.notification-link {
-    color: white;
-    text-decoration: none;
-    font-weight: 600;
-    display: block;
-}
-
-.notification-link:hover {
-    text-decoration: underline;
-}
-</style>
+<!-- Leave/Delete Team Modal -->
+<div id="tdsLeaveTeamModal" class="tds-modal">
+    <div class="tds-modal-overlay"></div>
+    <div class="tds-modal-container">
+        <div class="tds-modal-header">
+            <div class="tds-modal-title">
+                <i class="fas fa-<%= isTeamCaptain ? 'trash-alt' : 'sign-out-alt' %>"></i>
+                <h3><%= isTeamCaptain ? 'Eliminar Equipo' : 'Abandonar Equipo' %></h3>
+            </div>
+            <button class="tds-modal-close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="tds-modal-body">
+            <div class="tds-confirmation-content">
+                <% if (isTeamCaptain) { %>
+                    <div class="tds-warning-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="tds-confirmation-text">
+                        <p>¿Estás seguro de que deseas eliminar el equipo "<strong><%= team.name %></strong>"?</p>
+                        <p class="tds-warning-text">Esta acción no se puede deshacer. Todos los miembros serán removidos y el equipo será eliminado permanentemente.</p>
+                    </div>
+                    
+                    <div class="tds-form-actions">
+                        <form action="/delete-team" method="POST">
+                            <input type="hidden" name="team_id" value="<%= team.id_team %>">
+                            <button type="submit" class="tds-btn tds-btn-danger">
+                                <i class="fas fa-trash-alt"></i>
+                                <span>Eliminar Equipo</span>
+                            </button>
+                            <button type="button" class="tds-btn tds-btn-outline tds-close-modal">
+                                <i class="fas fa-times"></i>
+                                <span>Cancelar</span>
+                            </button>
+                        </form>
+                    </div>
+                <% } else { %>
+                    <div class="tds-warning-icon">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                    <div class="tds-confirmation-text">
+                        <p>¿Estás seguro de que deseas abandonar el equipo "<strong><%= team.name %></strong>"?</p>
+                    </div>
+                    
+                    <div class="tds-form-actions">
+                        <form action="/leave-team" method="POST">
+                            <input type="hidden" name="team_id" value="<%= team.id_team %>">
+                            <button type="submit" class="tds-btn tds-btn-danger">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Abandonar Equipo</span>
+                            </button>
+                            <button type="button" class="tds-btn tds-btn-outline tds-close-modal">
+                                <i class="fas fa-times"></i>
+                                <span>Cancelar</span>
+                            </button>
+                        </form>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Modal de invitar jugador
-        const invitePlayerModal = document.getElementById('invitePlayerModal');
-        const invitePlayerBtn = document.getElementById('invitePlayerBtn');
-        if (invitePlayerBtn) {
-            const closeInvitePlayerBtn = invitePlayerModal.querySelector('.close');
-            const closeInvitePlayerBtnOutline = invitePlayerModal.querySelector('.close-modal');
+// Global functions for team details management
+function tdsOpenModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function tdsCloseModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal functionality
+    const modals = ['tdsInvitePlayerModal', 'tdsEditTeamModal', 'tdsLeaveTeamModal'];
+    const buttons = {
+        'tdsInvitePlayerBtn': 'tdsInvitePlayerModal',
+        'tdsEditTeamBtn': 'tdsEditTeamModal',
+        'tdsLeaveTeamBtn': 'tdsLeaveTeamModal'
+    };
+    
+    // Open modals
+    Object.keys(buttons).forEach(buttonId => {
+        const button = document.getElementById(buttonId);
+        if (button) {
+            button.addEventListener('click', () => {
+                tdsOpenModal(buttons[buttonId]);
+            });
+        }
+    });
+    
+    // Close modals
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            const closeBtn = modal.querySelector('.tds-modal-close');
+            const closeBtns = modal.querySelectorAll('.tds-close-modal');
+            const overlay = modal.querySelector('.tds-modal-overlay');
             
-            function openInvitePlayerModal() {
-                invitePlayerModal.style.display = 'block';
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => tdsCloseModal(modalId));
             }
             
-            function closeInvitePlayerModal() {
-                invitePlayerModal.style.display = 'none';
-            }
+            closeBtns.forEach(btn => {
+                btn.addEventListener('click', () => tdsCloseModal(modalId));
+            });
             
-            invitePlayerBtn.addEventListener('click', openInvitePlayerModal);
-            closeInvitePlayerBtn.addEventListener('click', closeInvitePlayerModal);
-            closeInvitePlayerBtnOutline.addEventListener('click', closeInvitePlayerModal);
+            if (overlay) {
+                overlay.addEventListener('click', () => tdsCloseModal(modalId));
+            }
+        }
+    });
+    
+    // File upload functionality
+    const fileUploadArea = document.getElementById('tdsFileUploadArea');
+    const fileInput = document.getElementById('tdsTeamLogo');
+    const filePreview = document.getElementById('tdsFilePreview');
+    const previewImage = document.getElementById('tdsPreviewImage');
+    const fileName = document.getElementById('tdsFileName');
+    const removeFileBtn = document.getElementById('tdsRemoveFile');
+    const uploadContent = document.querySelector('.tds-file-upload-content');
+    
+    // Drag and drop
+    if (fileUploadArea) {
+        fileUploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('tds-dragover');
+        });
+        
+        fileUploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('tds-dragover');
+        });
+        
+        fileUploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('tds-dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+    }
+    
+    // File input change
+    if (fileInput) {
+        fileInput.addEventListener('change', function() {
+            if (this.files.length > 0) {
+                handleFileSelect(this.files[0]);
+            }
+        });
+    }
+    
+    // Remove file
+    if (removeFileBtn) {
+        removeFileBtn.addEventListener('click', function() {
+            fileInput.value = '';
+            filePreview.style.display = 'none';
+            uploadContent.style.display = 'block';
+        });
+    }
+    
+    function handleFileSelect(file) {
+        // Validate file
+        if (!file.type.match('image.*')) {
+            alert('Solo se permiten archivos de imagen.');
+            return;
         }
         
-        // Modal de editar equipo
-        const editTeamModal = document.getElementById('editTeamModal');
-        const editTeamBtn = document.getElementById('editTeamBtn');
-        if (editTeamBtn) {
-            const closeEditTeamBtn = editTeamModal.querySelector('.close');
-            const closeEditTeamBtnOutline = editTeamModal.querySelector('.close-modal');
-            
-            function openEditTeamModal() {
-                editTeamModal.style.display = 'block';
-            }
-            
-            function closeEditTeamModal() {
-                editTeamModal.style.display = 'none';
-            }
-            
-            editTeamBtn.addEventListener('click', openEditTeamModal);
-            closeEditTeamBtn.addEventListener('click', closeEditTeamModal);
-            closeEditTeamBtnOutline.addEventListener('click', closeEditTeamModal);
+        if (file.size > 5 * 1024 * 1024) {
+            alert('El archivo es demasiado grande. El tamaño máximo es 5MB.');
+            return;
         }
         
-        // Modal de abandonar/eliminar equipo
-        const leaveTeamModal = document.getElementById('leaveTeamModal');
-        const leaveTeamBtn = document.getElementById('leaveTeamBtn');
-        if (leaveTeamBtn) {
-            const closeLeaveTeamBtn = leaveTeamModal.querySelector('.close');
-            const closeLeaveTeamBtnOutline = leaveTeamModal.querySelector('.close-modal');
-            
-            function openLeaveTeamModal() {
-                leaveTeamModal.style.display = 'block';
-            }
-            
-            function closeLeaveTeamModal() {
-                leaveTeamModal.style.display = 'none';
-            }
-            
-            leaveTeamBtn.addEventListener('click', openLeaveTeamModal);
-            closeLeaveTeamBtn.addEventListener('click', closeLeaveTeamModal);
-            closeLeaveTeamBtnOutline.addEventListener('click', closeLeaveTeamModal);
-        }
-        
-        // Cerrar modales al hacer clic fuera del contenido
-        window.addEventListener('click', function(event) {
-            if (event.target == invitePlayerModal) {
-                invitePlayerModal.style.display = 'none';
-            }
-            if (event.target == editTeamModal) {
-                editTeamModal.style.display = 'none';
-            }
-            if (event.target == leaveTeamModal) {
-                leaveTeamModal.style.display = 'none';
+        // Show preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImage.src = e.target.result;
+            fileName.textContent = file.name;
+            filePreview.style.display = 'flex';
+            uploadContent.style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    // Form submissions with loading states
+    const forms = document.querySelectorAll('.tds-form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.classList.add('tds-loading');
+                submitBtn.disabled = true;
             }
         });
     });
+    
+    // Close modals on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            modals.forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (modal && modal.style.display === 'block') {
+                    tdsCloseModal(modalId);
+                }
+            });
+        }
+    });
+    
+    // Animate elements on load
+    const cards = document.querySelectorAll('.tds-sidebar-section, .tds-section-card');
+    cards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 200 + 300);
+    });
+    
+    // Auto-hide alerts after 5 seconds
+    const alerts = document.querySelectorAll('.tds-alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
 </script>
 
 <%- include('partials/footer') %>

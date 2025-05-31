@@ -1,87 +1,133 @@
 <%- include('partials/header', { title: 'Tournaments', username: username }) %>
 
-<div class="main-content">
-    <div class="sidebar">
-        <div class="sidebar-section">
-            <h3 class="sidebar-title">TUS CRÉDITOS</h3>
-            <div class="user-credits">
-                <span class="credits-amount"><%= userCreditos.toFixed(2) %></span>
-                <span class="credits-label">Créditos</span>
+<div class="trn-tournaments-container">
+    <div class="trn-tournaments-sidebar">
+        <!-- Sección de Créditos -->
+        <div class="trn-sidebar-section">
+            <h3 class="trn-sidebar-title">TUS CRÉDITOS</h3>
+            <div class="trn-user-credits">
+                <div class="trn-credits-icon">💰</div>
+                <div class="trn-credits-info">
+                    <span class="trn-credits-amount"><%= userCreditos.toFixed(2) %></span>
+                    <span class="trn-credits-label">Créditos</span>
+                </div>
             </div>
         </div>
         
-        <div class="sidebar-section">
-            <h3 class="sidebar-title">TUS EQUIPOS</h3>
+        <!-- Sección de Equipos -->
+        <div class="trn-sidebar-section">
+            <h3 class="trn-sidebar-title">TUS EQUIPOS</h3>
             <% if (userTeams && userTeams.length > 0) { %>
-                <div class="user-teams">
+                <div class="trn-user-teams">
                     <% userTeams.forEach(team => { %>
-                        <div class="team-item">
-                            <% if (team.logo_path) { %>
-                                <img src="<%= team.logo_path %>" alt="<%= team.name %>" class="team-logo">
-                            <% } else { %>
-                                <div class="team-logo-placeholder"><%= team.tag %></div>
-                            <% } %>
-                            <div class="team-info">
-                                <div class="team-name"><%= team.name %></div>
-                                <div class="team-members"><%= team.member_count %> miembros</div>
+                        <div class="trn-team-item">
+                            <div class="trn-team-avatar">
+                                <% if (team.logo_path) { %>
+                                    <img src="<%= team.logo_path %>" alt="<%= team.name %>" class="trn-team-logo">
+                                <% } else { %>
+                                    <div class="trn-team-logo-placeholder"><%= team.tag %></div>
+                                <% } %>
                             </div>
-                            <a href="/team/<%= team.id_team %>" class="team-view-btn">Ver</a>
+                            <div class="trn-team-info">
+                                <div class="trn-team-name"><%= team.name %></div>
+                                <div class="trn-team-members">
+                                    <i class="fas fa-users"></i>
+                                    <%= team.member_count %> miembros
+                                </div>
+                            </div>
+                            <a href="/team/<%= team.id_team %>" class="trn-team-view-btn">
+                                <i class="fas fa-eye"></i>
+                            </a>
                         </div>
                     <% }); %>
                 </div>
-                <button id="createTeamBtn" class="btn btn-outline">Crear Nuevo Equipo</button>
+                <button id="createTeamBtn" class="trn-btn trn-btn-outline trn-btn-full">
+                    <i class="fas fa-plus"></i>
+                    <span>Crear Nuevo Equipo</span>
+                </button>
             <% } else { %>
-                <div class="no-teams">
+                <div class="trn-no-teams">
+                    <div class="trn-no-teams-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
                     <p>No tienes equipos creados.</p>
-                    <button id="createTeamBtn" class="btn btn-primary">Crear Mi Primer Equipo</button>
+                    <button id="createTeamBtn" class="trn-btn trn-btn-primary trn-btn-full">
+                        <i class="fas fa-plus"></i>
+                        <span>Crear Mi Primer Equipo</span>
+                    </button>
                 </div>
             <% } %>
         </div>
         
+        <!-- Equipos donde participas -->
         <% if (memberTeams && memberTeams.length > 0) { %>
-            <div class="sidebar-section">
-                <h3 class="sidebar-title">EQUIPOS DONDE PARTICIPAS</h3>
-                <div class="user-teams">
+            <div class="trn-sidebar-section">
+                <h3 class="trn-sidebar-title">EQUIPOS DONDE PARTICIPAS</h3>
+                <div class="trn-user-teams">
                     <% memberTeams.forEach(team => { %>
-                        <div class="team-item">
-                            <% if (team.logo_path) { %>
-                                <img src="<%= team.logo_path %>" alt="<%= team.name %>" class="team-logo">
-                            <% } else { %>
-                                <div class="team-logo-placeholder"><%= team.tag %></div>
-                            <% } %>
-                            <div class="team-info">
-                                <div class="team-name"><%= team.name %></div>
-                                <div class="team-role"><%= team.role %></div>
+                        <div class="trn-team-item">
+                            <div class="trn-team-avatar">
+                                <% if (team.logo_path) { %>
+                                    <img src="<%= team.logo_path %>" alt="<%= team.name %>" class="trn-team-logo">
+                                <% } else { %>
+                                    <div class="trn-team-logo-placeholder"><%= team.tag %></div>
+                                <% } %>
                             </div>
-                            <a href="/team/<%= team.id_team %>" class="team-view-btn">Ver</a>
+                            <div class="trn-team-info">
+                                <div class="trn-team-name"><%= team.name %></div>
+                                <div class="trn-team-role">
+                                    <i class="fas fa-star"></i>
+                                    <%= team.role %>
+                                </div>
+                            </div>
+                            <a href="/team/<%= team.id_team %>" class="trn-team-view-btn">
+                                <i class="fas fa-eye"></i>
+                            </a>
                         </div>
                     <% }); %>
                 </div>
             </div>
         <% } %>
         
+        <!-- Invitaciones Pendientes -->
         <% if (invitations && invitations.length > 0) { %>
-            <div class="sidebar-section">
-                <h3 class="sidebar-title">INVITACIONES PENDIENTES</h3>
-                <div class="invitations-container">
+            <div class="trn-sidebar-section">
+                <h3 class="trn-sidebar-title">INVITACIONES PENDIENTES</h3>
+                <div class="trn-invitations-container">
                     <% invitations.forEach(invitation => { %>
-                        <div class="invitation-item">
-                            <div class="invitation-header">
-                                <div class="invitation-team"><%= invitation.team_name %> [<%= invitation.team_tag %>]</div>
-                                <div class="invitation-role">Rol: <%= invitation.role %></div>
+                        <div class="trn-invitation-item">
+                            <div class="trn-invitation-header">
+                                <div class="trn-invitation-team">
+                                    <i class="fas fa-users"></i>
+                                    <%= invitation.team_name %> [<%= invitation.team_tag %>]
+                                </div>
+                                <div class="trn-invitation-role">
+                                    <i class="fas fa-user-tag"></i>
+                                    <%= invitation.role %>
+                                </div>
                             </div>
-                            <div class="invitation-details">
-                                <div class="invitation-from">De: <%= invitation.inviter_username %></div>
-                                <div class="invitation-date">Fecha: <%= new Date(invitation.invitation_date).toLocaleDateString() %></div>
+                            <div class="trn-invitation-details">
+                                <div class="trn-invitation-from">
+                                    <i class="fas fa-user"></i>
+                                    <%= invitation.inviter_username %>
+                                </div>
+                                <div class="trn-invitation-date">
+                                    <i class="fas fa-calendar"></i>
+                                    <%= new Date(invitation.invitation_date).toLocaleDateString() %>
+                                </div>
                             </div>
-                            <div class="invitation-actions">
-                                <form action="/accept-invitation" method="POST" class="inline-form">
+                            <div class="trn-invitation-actions">
+                                <form action="/accept-invitation" method="POST" class="trn-inline-form">
                                     <input type="hidden" name="invitation_id" value="<%= invitation.id_invitation %>">
-                                    <button type="submit" class="btn-small btn-accept">Aceptar</button>
+                                    <button type="submit" class="trn-btn-small trn-btn-accept">
+                                        <i class="fas fa-check"></i>
+                                    </button>
                                 </form>
-                                <form action="/reject-invitation" method="POST" class="inline-form">
+                                <form action="/reject-invitation" method="POST" class="trn-inline-form">
                                     <input type="hidden" name="invitation_id" value="<%= invitation.id_invitation %>">
-                                    <button type="submit" class="btn-small btn-reject">Rechazar</button>
+                                    <button type="submit" class="trn-btn-small trn-btn-reject">
+                                        <i class="fas fa-times"></i>
+                                    </button>
                                 </form>
                             </div>
                         </div>
@@ -90,52 +136,80 @@
             </div>
         <% } %>
         
+        <!-- Notificaciones -->
         <% if (notificationCount > 0) { %>
-            <div class="sidebar-section">
-                <h3 class="sidebar-title">NOTIFICACIONES</h3>
-                <div class="notification-badge">
-                    <a href="/notifications" class="notification-link">
-                        Tienes <%= notificationCount %> notificaciones nuevas
+            <div class="trn-sidebar-section">
+                <h3 class="trn-sidebar-title">NOTIFICACIONES</h3>
+                <div class="trn-notification-badge">
+                    <a href="/notifications" class="trn-notification-link">
+                        <i class="fas fa-bell"></i>
+                        <span>Tienes <%= notificationCount %> notificaciones nuevas</span>
+                        <div class="trn-notification-pulse"></div>
                     </a>
                 </div>
             </div>
         <% } %>
         
-        <div class="sidebar-section">
-            <h3 class="sidebar-title">FILTROS</h3>
-            <div class="filter-section">
-                <div class="filter-group">
-                    <div class="filter-label">Formato:</div>
-                    <div class="filter-options">
-                        <div class="filter-option">
+        <!-- Filtros -->
+        <div class="trn-sidebar-section">
+            <h3 class="trn-sidebar-title">FILTROS</h3>
+            <div class="trn-filter-section">
+                <div class="trn-filter-group">
+                    <div class="trn-filter-label">
+                        <i class="fas fa-gamepad"></i>
+                        Formato
+                    </div>
+                    <div class="trn-filter-options">
+                        <div class="trn-filter-option">
                             <input type="checkbox" id="format-all" checked>
-                            <label for="format-all">Todos</label>
+                            <label for="format-all">
+                                <span class="trn-checkbox-custom"></span>
+                                <span>Todos</span>
+                            </label>
                         </div>
-                        <div class="filter-option">
+                        <div class="trn-filter-option">
                             <input type="checkbox" id="format-1v1">
-                            <label for="format-1v1">1v1</label>
+                            <label for="format-1v1">
+                                <span class="trn-checkbox-custom"></span>
+                                <span>1v1</span>
+                            </label>
                         </div>
-                        <div class="filter-option">
+                        <div class="trn-filter-option">
                             <input type="checkbox" id="format-5v5">
-                            <label for="format-5v5">5v5</label>
+                            <label for="format-5v5">
+                                <span class="trn-checkbox-custom"></span>
+                                <span>5v5</span>
+                            </label>
                         </div>
                     </div>
                 </div>
                 
-                <div class="filter-group">
-                    <div class="filter-label">Región:</div>
-                    <div class="filter-options">
-                        <div class="filter-option">
+                <div class="trn-filter-group">
+                    <div class="trn-filter-label">
+                        <i class="fas fa-globe"></i>
+                        Región
+                    </div>
+                    <div class="trn-filter-options">
+                        <div class="trn-filter-option">
                             <input type="checkbox" id="region-all" checked>
-                            <label for="region-all">Todas</label>
+                            <label for="region-all">
+                                <span class="trn-checkbox-custom"></span>
+                                <span>Todas</span>
+                            </label>
                         </div>
-                        <div class="filter-option">
+                        <div class="trn-filter-option">
                             <input type="checkbox" id="region-na">
-                            <label for="region-na">NA</label>
+                            <label for="region-na">
+                                <span class="trn-checkbox-custom"></span>
+                                <span>NA</span>
+                            </label>
                         </div>
-                        <div class="filter-option">
+                        <div class="trn-filter-option">
                             <input type="checkbox" id="region-eu">
-                            <label for="region-eu">EU</label>
+                            <label for="region-eu">
+                                <span class="trn-checkbox-custom"></span>
+                                <span>EU</span>
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -143,481 +217,236 @@
         </div>
     </div>
     
-    <div class="content">
+    <div class="trn-tournaments-content">
+        <!-- Alertas -->
         <% if (message) { %>
-            <div class="alert alert-success">
-                <% if (message === 'team-created') { %>
-                    Equipo creado correctamente.
-                <% } else if (message === 'tournament-joined') { %>
-                    Te has inscrito al torneo correctamente.
-                <% } else if (message === 'team-deleted') { %>
-                    Equipo eliminado correctamente.
-                <% } else if (message === 'left-team') { %>
-                    Has abandonado el equipo correctamente.
-                <% } else if (message === 'invitation-accepted') { %>
-                    Has aceptado la invitación y ahora eres miembro del equipo.
-                <% } else if (message === 'invitation-rejected') { %>
-                    Has rechazado la invitación al equipo.
-                <% } else { %>
-                    <%= message %>
-                <% } %>
+            <div class="trn-alert trn-alert-success">
+                <i class="fas fa-check-circle"></i>
+                <span>
+                    <% if (message === 'team-created') { %>
+                        Equipo creado correctamente.
+                    <% } else if (message === 'tournament-joined') { %>
+                        Te has inscrito al torneo correctamente.
+                    <% } else if (message === 'team-deleted') { %>
+                        Equipo eliminado correctamente.
+                    <% } else if (message === 'left-team') { %>
+                        Has abandonado el equipo correctamente.
+                    <% } else if (message === 'invitation-accepted') { %>
+                        Has aceptado la invitación y ahora eres miembro del equipo.
+                    <% } else if (message === 'invitation-rejected') { %>
+                        Has rechazado la invitación al equipo.
+                    <% } else { %>
+                        <%= message %>
+                    <% } %>
+                </span>
             </div>
         <% } %>
         
         <% if (error) { %>
-            <div class="alert alert-error">
-                <% if (error === 'insufficient-credits') { %>
-                    No tienes suficientes créditos para inscribirte a este torneo.
-                <% } else if (error === 'already-registered') { %>
-                    Ya estás inscrito en este torneo.
-                <% } else if (error === 'no-team') { %>
-                    Necesitas un equipo para inscribirte a este torneo.
-                <% } else if (error === 'not-team-captain') { %>
-                    Solo el capitán del equipo puede realizar esta acción.
-                <% } else if (error === 'not-team-member') { %>
-                    No eres miembro de este equipo.
-                <% } else if (error === 'user-not-found') { %>
-                    Usuario no encontrado.
-                <% } else if (error === 'invitation-not-found') { %>
-                    La invitación no existe o ya no está disponible.
-                <% } else if (error === 'role-already-taken') { %>
-                    El rol ya está ocupado por otro miembro del equipo.
-                <% } else { %>
-                    <%= error %>
-                <% } %>
+            <div class="trn-alert trn-alert-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>
+                    <% if (error === 'insufficient-credits') { %>
+                        No tienes suficientes créditos para inscribirte a este torneo.
+                    <% } else if (error === 'already-registered') { %>
+                        Ya estás inscrito en este torneo.
+                    <% } else if (error === 'no-team') { %>
+                        Necesitas un equipo para inscribirte a este torneo.
+                    <% } else if (error === 'not-team-captain') { %>
+                        Solo el capitán del equipo puede realizar esta acción.
+                    <% } else if (error === 'not-team-member') { %>
+                        No eres miembro de este equipo.
+                    <% } else if (error === 'user-not-found') { %>
+                        Usuario no encontrado.
+                    <% } else if (error === 'invitation-not-found') { %>
+                        La invitación no existe o ya no está disponible.
+                    <% } else if (error === 'role-already-taken') { %>
+                        El rol ya está ocupado por otro miembro del equipo.
+                    <% } else { %>
+                        <%= error %>
+                    <% } %>
+                </span>
             </div>
         <% } %>
         
-        <div class="top-bar">
-            <h2 class="page-title">TORNEOS DISPONIBLES</h2>
-            <div class="view-options">
-                <a href="#" class="nav-link active">Próximos</a>
-                <a href="#" class="nav-link">En Curso</a>
-                <a href="#" class="nav-link">Completados</a>
+        <!-- Header -->
+        <div class="trn-content-header">
+            <div class="trn-header-content">
+                <h1 class="trn-page-title">TORNEOS DISPONIBLES</h1>
+                <p class="trn-page-subtitle">Compite en torneos épicos y gana increíbles premios</p>
+            </div>
+            <div class="trn-view-options">
+                <a href="#" class="trn-nav-link active" data-filter="upcoming">
+                    <i class="fas fa-clock"></i>
+                    <span>Próximos</span>
+                </a>
+                <a href="#" class="trn-nav-link" data-filter="live">
+                    <i class="fas fa-play"></i>
+                    <span>En Curso</span>
+                </a>
+                <a href="#" class="trn-nav-link" data-filter="completed">
+                    <i class="fas fa-trophy"></i>
+                    <span>Completados</span>
+                </a>
             </div>
         </div>
         
-        <div class="tournaments-grid">
+        <!-- Tournaments Grid -->
+        <div class="trn-tournaments-grid">
             <% if (tournaments && tournaments.length > 0) { %>
                 <% tournaments.forEach(tournament => { %>
-                    <div class="tournament-card">
-                        <div class="tournament-header">
+                    <div class="trn-tournament-card" data-status="upcoming">
+                        <div class="trn-tournament-header">
                             <% if (tournament.image_path) { %>
-                                <img src="<%= tournament.image_path %>" alt="<%= tournament.name %>" class="tournament-image">
+                                <img src="<%= tournament.image_path %>" alt="<%= tournament.name %>" class="trn-tournament-image">
                             <% } else { %>
-                                <img src="/images/league_of_legends-icon.png" alt="Tournament" class="tournament-image">
+                                <img src="/images/league_of_legends-icon.png" alt="Tournament" class="trn-tournament-image">
                             <% } %>
-                            <div class="prize"><%= tournament.prize_pool %> Credits</div>
+                            <div class="trn-tournament-overlay">
+                                <div class="trn-tournament-status">UPCOMING</div>
+                                <div class="trn-tournament-prize">
+                                    <span class="trn-prize-amount"><%= tournament.prize_pool %></span>
+                                    <span class="trn-prize-label">Credits</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="tournament-info">
-                            <h3 class="tournament-title"><%= tournament.name %></h3>
-                            <p><%= new Date(tournament.start_date).toLocaleString() %> 
-                                <% 
-                                    const now = new Date();
-                                    const tournamentDate = new Date(tournament.start_date);
-                                    const diffTime = Math.abs(tournamentDate - now);
-                                    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-                                    const diffHours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                                    const diffMinutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
-                                %>
-                                <span class="start-time">
-                                    Starts in <%= diffDays %>D <%= diffHours %>H <%= diffMinutes %>M
-                                </span>
-                            </p>
-                            <p><%= tournament.format %></p>
-                            <p><%= tournament.region %></p>
-                        </div>
-                        <div class="tournament-actions">
-                            <a href="/tournament/<%= tournament.id_tournament %>" class="btn btn-primary">Ver Detalles</a>
+                        
+                        <div class="trn-tournament-content">
+                            <div class="trn-tournament-info">
+                                <h3 class="trn-tournament-title"><%= tournament.name %></h3>
+                                <div class="trn-tournament-meta">
+                                    <div class="trn-meta-item">
+                                        <i class="fas fa-calendar"></i>
+                                        <span><%= new Date(tournament.start_date).toLocaleDateString() %></span>
+                                    </div>
+                                    <div class="trn-meta-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>
+                                            <% 
+                                                const now = new Date();
+                                                const tournamentDate = new Date(tournament.start_date);
+                                                const diffTime = Math.abs(tournamentDate - now);
+                                                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                                                const diffHours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                                const diffMinutes = Math.floor((diffTime % (1000 * 60 * 60)) / (1000 * 60));
+                                            %>
+                                            <%= diffDays %>D <%= diffHours %>H <%= diffMinutes %>M
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                <div class="trn-tournament-details">
+                                    <div class="trn-detail-row">
+                                        <div class="trn-detail-item">
+                                            <i class="fas fa-gamepad"></i>
+                                            <span><%= tournament.format %></span>
+                                        </div>
+                                        <div class="trn-detail-item">
+                                            <i class="fas fa-globe"></i>
+                                            <span><%= tournament.region %></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="trn-tournament-actions">
+                                <a href="/tournament/<%= tournament.id_tournament %>" class="trn-btn trn-btn-primary trn-btn-full">
+                                    <i class="fas fa-eye"></i>
+                                    <span>Ver Detalles</span>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 <% }); %>
             <% } else { %>
-                <p>No hay torneos disponibles.</p>
+                <div class="trn-no-tournaments">
+                    <div class="trn-no-tournaments-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <h3>No hay torneos disponibles</h3>
+                    <p>¡Mantente atento! Pronto habrá nuevos torneos emocionantes.</p>
+                </div>
             <% } %>
         </div>
     </div>
 </div>
 
-<style>
-/* Estilos generales */
-body {
-    font-family: 'Arial', sans-serif;
-    background-color: #121212;
-    color: #fff;
-    margin: 0;
-    padding: 0;
-}
-
-.main-content {
-    display: flex;
-    height: 100vh;
-}
-
-.sidebar {
-    width: 250px;
-    background-color: #1e1e1e;
-    padding: 20px;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.3);
-}
-
-.content {
-    flex-grow: 1;
-    padding: 20px;
-}
-
-/* Estilos de la barra lateral */
-.sidebar-title {
-    color: #8a2be2;
-    margin-bottom: 15px;
-    border-bottom: 2px solid #8a2be2;
-    padding-bottom: 5px;
-}
-
-.sidebar-section {
-    margin-bottom: 20px;
-}
-
-/* Estilos de créditos de usuario */
-.user-credits {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.credits-amount {
-    font-size: 1.5em;
-    font-weight: bold;
-    color: #4CAF50;
-    margin-right: 5px;
-}
-
-.credits-label {
-    font-size: 1em;
-    color: #ccc;
-}
-
-/* Estilos de equipos de usuario */
-.user-teams {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.team-item {
-    background-color: #2a2a2a;
-    border-radius: 8px;
-    padding: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.team-logo {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    margin-right: 10px;
-    object-fit: cover;
-}
-
-.team-logo-placeholder {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background-color: #333;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    margin-right: 10px;
-}
-
-.team-info {
-    flex-grow: 1;
-}
-
-.team-name {
-    font-weight: bold;
-    color: #fff;
-}
-
-.team-members {
-    color: #aaa;
-    font-size: 0.9em;
-}
-
-.team-role {
-    color: #8a2be2;
-    font-size: 0.9em;
-}
-
-.team-view-btn {
-    background-color: #8a2be2;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 4px;
-    text-decoration: none;
-    transition: background-color 0.3s ease;
-}
-
-.team-view-btn:hover {
-    background-color: #6c23a8;
-}
-
-.no-teams {
-    text-align: center;
-    color: #aaa;
-}
-
-/* Estilos de filtros */
-.filter-section {
-    margin-top: 10px;
-}
-
-.filter-group {
-    margin-bottom: 15px;
-}
-
-.filter-label {
-    font-weight: bold;
-    margin-bottom: 5px;
-    color: #ddd;
-}
-
-.filter-options {
-    display: flex;
-    flex-direction: column;
-}
-
-.filter-option {
-    margin-bottom: 5px;
-}
-
-.filter-option label {
-    margin-left: 5px;
-    color: #ccc;
-}
-
-/* Estilos de la barra superior */
-.top-bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.page-title {
-    color: #fff;
-    margin: 0;
-}
-
-.view-options {
-    display: flex;
-    gap: 20px;
-}
-
-.nav-link {
-    color: #aaa;
-    text-decoration: none;
-    transition: color 0.3s ease;
-}
-
-.nav-link:hover {
-    color: #fff;
-}
-
-.nav-link.active {
-    color: #8a2be2;
-    font-weight: bold;
-}
-
-/* Estilos de la cuadrícula de torneos */
-.tournaments-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-}
-
-.tournament-card {
-    background-color: #1e1e1e;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: transform 0.3s ease;
-}
-
-.tournament-card:hover {
-    transform: translateY(-5px);
-}
-
-.tournament-header {
-    position: relative;
-}
-
-.tournament-image {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-    display: block;
-}
-
-.prize {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: #ffc107;
-    padding: 5px 8px;
-    border-radius: 4px;
-    font-size: 0.9em;
-}
-
-.tournament-info {
-    padding: 15px;
-}
-
-.tournament-title {
-    color: #fff;
-    margin-bottom: 10px;
-}
-
-.tournament-info p {
-    color: #aaa;
-    font-size: 0.9em;
-    margin-bottom: 8px;
-}
-
-.tournament-actions {
-    padding: 15px;
-    text-align: center;
-}
-
-/* Estilos de botones */
-.btn {
-    padding: 10px 15px;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    text-decoration: none;
-    color: white;
-    display: inline-block;
-}
-
-.btn-primary {
-    background-color: #8a2be2;
-}
-
-.btn-primary:hover {
-    background-color: #6c23a8;
-}
-
-.btn-outline {
-    background-color: transparent;
-    border: 2px solid #8a2be2;
-    color: #8a2be2;
-}
-
-.btn-outline:hover {
-    background-color: #6c23a8;
-    color: white;
-}
-
-/* Estilos para invitaciones pendientes */
-.invitations-container {
-    margin-top: 10px;
-}
-
-.invitation-item {
-    background-color: #2a2a2a;
-    border-radius: 8px;
-    padding: 12px;
-    margin-bottom: 10px;
-    border-left: 3px solid #8a2be2;
-}
-
-.invitation-header {
-    margin-bottom: 8px;
-}
-
-.invitation-team {
-    font-weight: 600;
-    color: #fff;
-    margin-bottom: 3px;
-}
-
-.invitation-role {
-    color: #8a2be2;
-    font-size: 0.9rem;
-}
-
-.invitation-details {
-    margin-bottom: 10px;
-}
-
-.invitation-from, .invitation-date {
-    color: #aaa;
-    font-size: 0.8rem;
-    margin-bottom: 3px;
-}
-
-.invitation-actions {
-    display: flex;
-    gap: 8px;
-}
-
-.btn-small {
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    border: none;
-    cursor: pointer;
-}
-
-.btn-accept {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.btn-accept:hover {
-    background-color: #45a049;
-}
-
-.btn-reject {
-    background-color: #f44336;
-    color: white;
-}
-
-.btn-reject:hover {
-    background-color: #d32f2f;
-}
-
-/* Estilos para notificaciones */
-.notification-badge {
-    background-color: #8a2be2;
-    padding: 10px;
-    border-radius: 4px;
-    text-align: center;
-    margin-top: 10px;
-}
-
-.notification-link {
-    color: white;
-    text-decoration: none;
-    font-weight: 600;
-    display: block;
-}
-
-.notification-link:hover {
-    text-decoration: underline;
-}
-</style>
 
 <script>
-    document.getElementById('createTeamBtn').addEventListener('click', function() {
-        window.location.href = '/create-team';
+document.addEventListener('DOMContentLoaded', function() {
+    // Create team button
+    const createTeamBtn = document.getElementById('createTeamBtn');
+    if (createTeamBtn) {
+        createTeamBtn.addEventListener('click', function() {
+            window.location.href = '/create-team';
+        });
+    }
+    
+    // Filter functionality
+    const filterOptions = document.querySelectorAll('.trn-filter-option input[type="checkbox"]');
+    filterOptions.forEach(option => {
+        option.addEventListener('change', function() {
+            // Add filter logic here
+            console.log('Filter changed:', this.id, this.checked);
+        });
     });
+    
+    // View options (Próximos, En Curso, Completados)
+    const viewLinks = document.querySelectorAll('.trn-nav-link');
+    viewLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // Remove active class from all links
+            viewLinks.forEach(l => l.classList.remove('active'));
+            
+            // Add active class to clicked link
+            this.classList.add('active');
+            
+            // Filter tournaments based on status
+            const filter = this.dataset.filter;
+            const tournaments = document.querySelectorAll('.trn-tournament-card');
+            
+            tournaments.forEach(tournament => {
+                const status = tournament.dataset.status;
+                if (filter === 'all' || status === filter) {
+                    tournament.style.display = 'block';
+                } else {
+                    tournament.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    // Tournament card animations
+    const tournamentCards = document.querySelectorAll('.trn-tournament-card');
+    tournamentCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Invitation actions with confirmation
+    const invitationForms = document.querySelectorAll('.trn-inline-form');
+    invitationForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const isReject = this.action.includes('reject');
+            const teamName = this.closest('.trn-invitation-item').querySelector('.trn-invitation-team').textContent.trim();
+            
+            if (isReject) {
+                const confirmed = confirm(`¿Estás seguro de que quieres rechazar la invitación de ${teamName}?`);
+                if (!confirmed) {
+                    e.preventDefault();
+                }
+            }
+        });
+    });
+});
 </script>
 
 <%- include('partials/footer') %>

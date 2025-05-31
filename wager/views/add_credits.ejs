@@ -1,0 +1,480 @@
+<%- include('partials/header', { title: 'Add Credits', username: username, userCreditos: userCreditos }) %>
+
+<div class="ac-credits-container">
+    <div class="ac-credits-sidebar">
+        <!-- Sección de Créditos Actuales -->
+        <div class="ac-sidebar-section">
+            <h3 class="ac-sidebar-title">TUS CRÉDITOS ACTUALES</h3>
+            <div class="ac-user-credits">
+                <div class="ac-credits-icon">💰</div>
+                <div class="ac-credits-info">
+                    <span class="ac-credits-amount"><%= userCreditos.toFixed(2) %></span>
+                    <span class="ac-credits-label">Créditos</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sección de Información -->
+        <div class="ac-sidebar-section">
+            <h3 class="ac-sidebar-title">INFORMACIÓN</h3>
+            <div class="ac-info-card">
+                <div class="ac-info-item">
+                    <div class="ac-info-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div class="ac-info-text">
+                        Los créditos te permiten participar en matches y torneos.
+                    </div>
+                </div>
+                <div class="ac-info-item">
+                    <div class="ac-info-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div class="ac-info-text">
+                        <strong>Tasa de cambio:</strong><br>100 créditos = 1€
+                    </div>
+                </div>
+                <div class="ac-info-item">
+                    <div class="ac-info-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="ac-info-text">
+                        Los pagos se procesan de forma segura a través de PayPal.
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sección de Paquetes Populares -->
+        <div class="ac-sidebar-section">
+            <h3 class="ac-sidebar-title">PAQUETES POPULARES</h3>
+            <div class="ac-popular-packages">
+                <div class="ac-package-item" onclick="selectPackage(500, 5)">
+                    <div class="ac-package-content">
+                        <div class="ac-package-credits">500 créditos</div>
+                        <div class="ac-package-price">5€</div>
+                    </div>
+                    <div class="ac-package-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                </div>
+                <div class="ac-package-item" onclick="selectPackage(1000, 10)">
+                    <div class="ac-package-content">
+                        <div class="ac-package-credits">1000 créditos</div>
+                        <div class="ac-package-price">10€</div>
+                    </div>
+                    <div class="ac-package-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                </div>
+                <div class="ac-package-item ac-package-best" onclick="selectPackage(2500, 25)">
+                    <div class="ac-package-badge">MEJOR VALOR</div>
+                    <div class="ac-package-content">
+                        <div class="ac-package-credits">2500 créditos</div>
+                        <div class="ac-package-price">25€</div>
+                    </div>
+                    <div class="ac-package-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="ac-credits-content">
+        <!-- Header -->
+        <div class="ac-content-header">
+            <div class="ac-header-content">
+                <div class="ac-breadcrumb">
+                    <a href="/matchfinder" class="ac-breadcrumb-link">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Volver al Dashboard</span>
+                    </a>
+                </div>
+                <h1 class="ac-page-title">AÑADIR CRÉDITOS</h1>
+                <p class="ac-page-subtitle">Compra créditos para participar en torneos y partidas</p>
+            </div>
+        </div>
+        
+        <!-- Formulario de Compra -->
+        <div class="ac-credits-purchase-form">
+            <!-- Sección de Selección de Créditos -->
+            <div class="ac-content-card">
+                <div class="ac-card-header">
+                    <h3 class="ac-card-title">
+                        <i class="fas fa-calculator"></i>
+                        <span>Selecciona la cantidad de créditos</span>
+                    </h3>
+                </div>
+                <div class="ac-card-content">
+                    <div class="ac-credits-input-group">
+                        <div class="ac-form-group">
+                            <label for="creditsAmount" class="ac-form-label">
+                                <i class="fas fa-coins"></i>
+                                <span>Cantidad de créditos:</span>
+                            </label>
+                            <div class="ac-input-container">
+                                <input type="number" id="creditsAmount" name="creditsAmount" min="100" step="100" value="500" onchange="updatePrice()" class="ac-form-input">
+                                <div class="ac-input-buttons">
+                                    <button type="button" class="ac-input-btn" onclick="adjustCredits(-100)">-</button>
+                                    <button type="button" class="ac-input-btn" onclick="adjustCredits(100)">+</button>
+                                </div>
+                            </div>
+                            <small class="ac-form-text">Mínimo: 100 créditos</small>
+                        </div>
+                        <div class="ac-form-group">
+                            <label for="euroAmount" class="ac-form-label">
+                                <i class="fas fa-euro-sign"></i>
+                                <span>Precio en euros:</span>
+                            </label>
+                            <input type="number" id="euroAmount" name="euroAmount" min="1" step="0.01" value="5.00" readonly class="ac-form-input ac-input-readonly">
+                            <small class="ac-form-text">100 créditos = 1€</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección de Método de Pago -->
+            <div class="ac-content-card">
+                <div class="ac-card-header">
+                    <h3 class="ac-card-title">
+                        <i class="fas fa-credit-card"></i>
+                        <span>Método de pago</span>
+                    </h3>
+                </div>
+                <div class="ac-card-content">
+                    <div class="ac-payment-method">
+                        <div class="ac-paypal-info">
+                            <img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-200px.png" alt="PayPal" class="ac-paypal-logo">
+                            <p>Pago seguro con PayPal</p>
+                        </div>
+                        <div id="paypal-button-container" class="ac-paypal-buttons"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Sección de Resumen de Compra -->
+            <div class="ac-content-card">
+                <div class="ac-card-header">
+                    <h3 class="ac-card-title">
+                        <i class="fas fa-receipt"></i>
+                        <span>Resumen de la compra</span>
+                    </h3>
+                </div>
+                <div class="ac-card-content">
+                    <div class="ac-purchase-summary">
+                        <div class="ac-summary-row">
+                            <div class="ac-summary-label">
+                                <i class="fas fa-coins"></i>
+                                <span>Créditos a comprar:</span>
+                            </div>
+                            <div class="ac-summary-value" id="summaryCredits">500</div>
+                        </div>
+                        <div class="ac-summary-row">
+                            <div class="ac-summary-label">
+                                <i class="fas fa-tag"></i>
+                                <span>Precio total:</span>
+                            </div>
+                            <div class="ac-summary-value" id="summaryPrice">5.00€</div>
+                        </div>
+                        <div class="ac-summary-row ac-summary-total">
+                            <div class="ac-summary-label">
+                                <i class="fas fa-wallet"></i>
+                                <span>Créditos después de la compra:</span>
+                            </div>
+                            <div class="ac-summary-value ac-summary-highlight" id="summaryTotal"><%= (userCreditos + 500).toFixed(2) %></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://www.paypal.com/sdk/js?client-id=ATiToZ1rnrcrLQRNpWZIp6gCbtGB6HWLyr8mLkOodHLys3Xa06m5U_FIgGXlB8w1Tj818yEXv83Zn8G-&currency=EUR"></script>
+<script>
+    function updatePrice() {
+        const creditsAmount = parseInt(document.getElementById('creditsAmount').value) || 0;
+        const euroAmount = (creditsAmount / 100).toFixed(2);
+        
+        document.getElementById('euroAmount').value = euroAmount;
+        document.getElementById('summaryCredits').textContent = creditsAmount;
+        document.getElementById('summaryPrice').textContent = euroAmount + '€';
+        document.getElementById('summaryTotal').textContent = (<%= userCreditos %> + creditsAmount).toFixed(2);
+    }
+    
+    function selectPackage(credits, euros) {
+        document.getElementById('creditsAmount').value = credits;
+        document.getElementById('euroAmount').value = euros.toFixed(2);
+        updatePrice();
+        
+        // Añadir efecto visual
+        const packages = document.querySelectorAll('.ac-package-item');
+        packages.forEach(pkg => {
+            pkg.classList.remove('ac-package-selected');
+        });
+        
+        // Encontrar el paquete seleccionado y añadir clase
+        packages.forEach(pkg => {
+            if (pkg.querySelector('.ac-package-credits').textContent.includes(credits)) {
+                pkg.classList.add('ac-package-selected');
+            }
+        });
+    }
+    
+    function adjustCredits(amount) {
+        const input = document.getElementById('creditsAmount');
+        let value = parseInt(input.value) || 0;
+        value += amount;
+        
+        // Asegurar mínimo de 100
+        if (value < 100) value = 100;
+        
+        input.value = value;
+        updatePrice();
+    }
+    
+    // Inicializar PayPal
+    paypal.Buttons({
+        style: {
+            color: 'blue',
+            shape: 'pill',
+            label: 'pay',
+            height: 40
+        },
+        createOrder: function(data, actions) {
+            const euroAmount = document.getElementById('euroAmount').value;
+            const creditsAmount = document.getElementById('creditsAmount').value;
+            
+            if (creditsAmount < 100) {
+                alert('La cantidad mínima es 100 créditos');
+                return;
+            }
+            
+            return fetch('/paypal/create-credits-payment', {
+                method: 'post',
+                headers: {
+                    'content-type': 'application/json'
+                },
+                body: JSON.stringify({
+                    value: euroAmount,
+                    credits: creditsAmount
+                })
+            }).then(function(response) {
+                return response.json();
+            }).then(function(order) {
+                if (order.err) {
+                    alert('Error: ' + order.errmsg);
+                    return;
+                }
+                return order.id;
+            });
+        },
+        onApprove: function(data, actions) {
+            // Mostrar indicador de carga
+            document.body.classList.add('ac-loading');
+            
+            return fetch('/paypal/capture-credits-payment', {
+                method: 'post',
+                headers: {
+                    'content-type': 'application/json'
+                },
+                body: JSON.stringify({
+                    orderID: data.orderID
+                })
+            }).then(function(response) {
+                return response.json();
+            }).then(function(details) {
+                // Ocultar indicador de carga
+                document.body.classList.remove('ac-loading');
+                
+                if (details.success) {
+                    // Mostrar mensaje de éxito
+                    showSuccessMessage('¡Pago completado! Tus créditos han sido añadidos a tu cuenta.');
+                    
+                    // Recargar después de 2 segundos
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                } else {
+                    showErrorMessage('Error procesando el pago: ' + details.errmsg);
+                }
+            });
+        },
+        onError: function(err) {
+            console.error('PayPal Error:', err);
+            showErrorMessage('Error en el proceso de pago. Por favor, inténtalo de nuevo.');
+        }
+    }).render('#paypal-button-container');
+    
+    // Función para mostrar mensaje de éxito
+    function showSuccessMessage(message) {
+        const messageElement = document.createElement('div');
+        messageElement.className = 'ac-message ac-message-success';
+        messageElement.innerHTML = `
+            <div class="ac-message-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="ac-message-content">
+                <div class="ac-message-title">¡Éxito!</div>
+                <div class="ac-message-text">${message}</div>
+            </div>
+        `;
+        document.body.appendChild(messageElement);
+        
+        setTimeout(() => {
+            messageElement.classList.add('ac-message-show');
+        }, 100);
+        
+        setTimeout(() => {
+            messageElement.classList.remove('ac-message-show');
+            setTimeout(() => {
+                document.body.removeChild(messageElement);
+            }, 300);
+        }, 5000);
+    }
+    
+    // Función para mostrar mensaje de error
+    function showErrorMessage(message) {
+        const messageElement = document.createElement('div');
+        messageElement.className = 'ac-message ac-message-error';
+        messageElement.innerHTML = `
+            <div class="ac-message-icon">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div class="ac-message-content">
+                <div class="ac-message-title">Error</div>
+                <div class="ac-message-text">${message}</div>
+            </div>
+        `;
+        document.body.appendChild(messageElement);
+        
+        setTimeout(() => {
+            messageElement.classList.add('ac-message-show');
+        }, 100);
+        
+        setTimeout(() => {
+            messageElement.classList.remove('ac-message-show');
+            setTimeout(() => {
+                document.body.removeChild(messageElement);
+            }, 300);
+        }, 5000);
+    }
+    
+    // Añadir estilos para mensajes y loading
+    document.head.insertAdjacentHTML('beforeend', `
+        <style>
+            .ac-loading::after {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(5px);
+                z-index: 9999;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .ac-loading::before {
+                content: '';
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 50px;
+                height: 50px;
+                border: 5px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                border-top-color: #dd6bfa;
+                z-index: 10000;
+                animation: ac-spin 1s linear infinite;
+            }
+            
+            @keyframes ac-spin {
+                to { transform: translate(-50%, -50%) rotate(360deg); }
+            }
+            
+            .ac-message {
+                position: fixed;
+                bottom: 30px;
+                right: 30px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                background: white;
+                border-radius: 12px;
+                padding: 15px 20px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                transform: translateY(100px);
+                opacity: 0;
+                transition: all 0.3s ease;
+                z-index: 9999;
+                max-width: 400px;
+            }
+            
+            .ac-message-show {
+                transform: translateY(0);
+                opacity: 1;
+            }
+            
+            .ac-message-icon {
+                font-size: 24px;
+            }
+            
+            .ac-message-success .ac-message-icon {
+                color: #22c55e;
+            }
+            
+            .ac-message-error .ac-message-icon {
+                color: #ef4444;
+            }
+            
+            .ac-message-content {
+                flex: 1;
+            }
+            
+            .ac-message-title {
+                font-weight: 700;
+                font-size: 16px;
+                margin-bottom: 5px;
+                color: #1f2937;
+            }
+            
+            .ac-message-text {
+                font-size: 14px;
+                color: #4b5563;
+            }
+            
+            .ac-package-selected {
+                border: 2px solid #dd6bfa;
+                box-shadow: 0 8px 25px rgba(221, 107, 250, 0.3);
+                transform: translateY(-2px);
+            }
+        </style>
+    `);
+    
+    // Inicializar
+    document.addEventListener('DOMContentLoaded', function() {
+        updatePrice();
+        
+        // Animación de entrada para las tarjetas
+        const cards = document.querySelectorAll('.ac-content-card');
+        cards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(30px)';
+            
+            setTimeout(() => {
+                card.style.transition = 'all 0.6s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, (index + 1) * 150);
+        });
+    });
+</script>
+
+<%- include('partials/footer') %>

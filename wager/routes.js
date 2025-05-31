@@ -5,6 +5,7 @@ const uuid = require("uuid")
 const multer = require("multer")
 const path = require("path")
 const fs = require("fs")
+const paypal = require('@paypal/checkout-server-sdk');
 
 // Configuración de multer para subir imágenes
 const storage = multer.diskStorage({
@@ -119,7 +120,7 @@ function verificarSesion(req, res, next) {
 
   if (!token || !sesiones[token]) {
     console.log("Token no válido o no encontrado:", token)
-    return res.status(401).json({ err: true, errmsg: "Sesión no válida" })
+    return res.redirect("/login");
   }
 
   if (sesiones[token].caducidad < Date.now()) {
@@ -254,28 +255,303 @@ router.get("/dashboard", verificarSesion, async (req, res) => {
     })
   }
 })
+// ruta logout
+
+router.get('/logout', (req, res) => {
+    res.clearCookie('token', { path: '/' });
+    res.redirect('/');
+});
 
 // Ruta para el panel de administración
 router.get("/admin", verificarSesion, verificarAdmin, async (req, res) => {
   try {
-    // Obtener los torneos existentes
     const connection = await global.poolPromise.getConnection()
+
+    // Obtener los torneos existentes
     const [tournaments] = await connection.execute("SELECT * FROM tournament ORDER BY start_date DESC")
+
+    // Obtener todos los usuarios
+    const [users] = await connection.execute(`
+      SELECT id_summoner, username, email, summoner, creditos, reputation, created_at 
+      FROM user 
+      ORDER BY created_at DESC
+    `)
+
+    // Obtener los créditos y id_summoner del usuario admin actual
+    let userCreditos = 0;
+    let notifications = [];
+    let notificationCount = 0;
+
+    if (req.username) {
+      // Obtener créditos e id_summoner en una sola consulta
+      const [adminRows] = await connection.execute(
+        "SELECT creditos, id_summoner FROM user WHERE username = ?", 
+        [req.username]
+      )
+      
+      if (adminRows.length > 0) {
+        userCreditos = adminRows[0].creditos || 0
+        const adminIdSummoner = adminRows[0].id_summoner;
+        
+        // Obtener notificaciones no leídas (igual que en matchfinder)
+        const [notificationRows] = await connection.execute(
+          `SELECT * FROM notification 
+           WHERE id_summoner = ? 
+           AND is_read = FALSE
+           ORDER BY created_at DESC`,
+          [adminIdSummoner]
+        )
+        
+        notifications = notificationRows;
+        notificationCount = notifications.length;
+      }
+    }
+
     connection.release()
 
     res.render("admin", {
       title: "Admin Panel",
       username: req.username,
+      userCreditos: userCreditos,
+      notifications: notifications,        // Añadir esta línea
+      notificationCount: notificationCount, // Añadir esta línea
       tournaments: tournaments,
+      users: users,
+      message: req.query.message,
+      error: req.query.error,
     })
   } catch (err) {
-    console.error("Error al obtener torneos:", err)
+    console.error("Error al obtener datos del admin:", err)
     res.render("admin", {
       title: "Admin Panel",
       username: req.username,
+      userCreditos: 0,
+      notifications: [],        // Añadir esta línea
+      notificationCount: 0,     // Añadir esta línea
       tournaments: [],
-      error: "Error al cargar torneos",
+      users: [],
+      error: "Error al cargar datos",
     })
+  }
+})
+
+// Route to edit a tournament
+router.get("/edit-tournament/:id", verificarSesion, verificarAdmin, async (req, res) => {
+  try {
+    const tournamentId = req.params.id
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Get tournament information
+    const [tournamentRows] = await connection.execute("SELECT * FROM tournament WHERE id_tournament = ?", [
+      tournamentId,
+    ])
+
+    connection.release()
+
+    if (tournamentRows.length === 0) {
+      return res.redirect("/admin?error=tournament-not-found")
+    }
+
+    const tournament = tournamentRows[0]
+
+    res.render("edit-tournament", {
+      title: "Edit Tournament",
+      username: req.username,
+      tournament: tournament,
+      error: null,
+    })
+  } catch (err) {
+    console.error("Error loading tournament for editing:", err)
+    return res.redirect("/admin?error=server-error")
+  }
+})
+
+// Route to update a tournament
+router.post(
+  "/update-tournament/:id",
+  verificarSesion,
+  verificarAdmin,
+  uploadTournament.single("tournament_image"),
+  async (req, res) => {
+    try {
+      const tournamentId = req.params.id
+      const {
+        name,
+        description,
+        start_date,
+        start_time,
+        entry_fee,
+        prize_pool,
+        team_size,
+        format,
+        map,
+        region,
+        skill_level,
+        max_participants,
+        status,
+      } = req.body
+
+      // Combine date and time
+      const startDateTime = new Date(`${start_date}T${start_time}`)
+
+      const connection = await global.poolPromise.getConnection()
+
+      // Check if tournament exists
+      const [tournamentCheck] = await connection.execute("SELECT * FROM tournament WHERE id_tournament = ?", [
+        tournamentId,
+      ])
+
+      if (tournamentCheck.length === 0) {
+        connection.release()
+        return res.redirect("/admin?error=tournament-not-found")
+      }
+
+      // Prepare update query
+      let updateQuery = `UPDATE tournament SET 
+        name = ?, 
+        description = ?, 
+        start_date = ?, 
+        entry_fee = ?, 
+        prize_pool = ?, 
+        team_size = ?, 
+        format = ?, 
+        map = ?, 
+        region = ?, 
+        skill_level = ?, 
+        max_participants = ?,
+        status = ?`
+
+      const updateParams = [
+        name,
+        description,
+        startDateTime,
+        Number.parseFloat(entry_fee),
+        Number.parseFloat(prize_pool),
+        team_size,
+        format,
+        map,
+        region,
+        skill_level,
+        Number.parseInt(max_participants),
+        status,
+      ]
+
+      // If a new image was uploaded, add it to the update
+      if (req.file) {
+        const imagePath = `/uploads/tournaments/${req.file.filename}`
+        updateQuery += `, image_path = ?`
+        updateParams.push(imagePath)
+      }
+
+      // Add WHERE clause
+      updateQuery += ` WHERE id_tournament = ?`
+      updateParams.push(tournamentId)
+
+      // Update tournament
+      const [result] = await connection.execute(updateQuery, updateParams)
+
+      connection.release()
+
+      if (result.affectedRows > 0) {
+        return res.redirect("/admin?message=tournament-updated")
+      } else {
+        return res.redirect("/admin?error=failed-to-update-tournament")
+      }
+    } catch (err) {
+      console.error("Error updating tournament:", err)
+      return res.redirect("/admin?error=server-error")
+    }
+  },
+)
+
+// Route to view tournament details and participants
+router.get("/view-tournament/:id", verificarSesion, verificarAdmin, async (req, res) => {
+  try {
+    const tournamentId = req.params.id
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Get tournament information
+    const [tournamentRows] = await connection.execute("SELECT * FROM tournament WHERE id_tournament = ?", [
+      tournamentId,
+    ])
+
+    if (tournamentRows.length === 0) {
+      connection.release()
+      return res.redirect("/admin?error=tournament-not-found")
+    }
+
+    const tournament = tournamentRows[0]
+
+    // Get participants (teams)
+    const [participants] = await connection.execute(
+      `SELECT tt.*, t.name as team_name, t.tag as team_tag, t.logo_path
+       FROM tournament_team tt
+       JOIN team t ON tt.id_team = t.id_team
+       WHERE tt.id_tournament = ?
+       ORDER BY tt.registration_date ASC`,
+      [tournamentId],
+    )
+
+    connection.release()
+
+    res.render("view-tournament", {
+      title: "View Tournament",
+      username: req.username,
+      tournament: tournament,
+      participants: participants,
+    })
+  } catch (err) {
+    console.error("Error loading tournament details:", err)
+    return res.redirect("/admin?error=server-error")
+  }
+})
+
+// Route to remove a team from a tournament
+router.post("/remove-team-from-tournament", verificarSesion, verificarAdmin, async (req, res) => {
+  try {
+    const { team_id, tournament_id } = req.body
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Check if the tournament and team exist
+    const [tournamentCheck] = await connection.execute("SELECT * FROM tournament WHERE id_tournament = ?", [
+      tournament_id,
+    ])
+    const [teamCheck] = await connection.execute("SELECT * FROM team WHERE id_team = ?", [team_id])
+
+    if (tournamentCheck.length === 0 || teamCheck.length === 0) {
+      connection.release()
+      return res.redirect(`/view-tournament/${tournament_id}?error=tournament-or-team-not-found`)
+    }
+
+    // Remove the team from the tournament
+    const [result] = await connection.execute("DELETE FROM tournament_team WHERE id_tournament = ? AND id_team = ?", [
+      tournament_id,
+      team_id,
+    ])
+
+    if (result.affectedRows > 0) {
+      // Update the participant count
+      await connection.execute(
+        "UPDATE tournament SET current_participants = current_participants - 1 WHERE id_tournament = ?",
+        [tournament_id],
+      )
+
+      // Refund the entry fee to the team captain if needed
+      // This is optional and depends on your business logic
+      // You might want to add this functionality later
+
+      connection.release()
+      return res.redirect(`/view-tournament/${tournament_id}?message=team-removed`)
+    } else {
+      connection.release()
+      return res.redirect(`/view-tournament/${tournament_id}?error=failed-to-remove-team`)
+    }
+  } catch (err) {
+    console.error("Error removing team from tournament:", err)
+    return res.redirect(`/admin?error=server-error`)
   }
 })
 
@@ -373,6 +649,340 @@ router.get("/delete-tournament/:id", verificarSesion, verificarAdmin, async (req
     return res.redirect("/admin?error=server-error")
   }
 })
+
+// Ruta para crear un nuevo usuario desde admin
+router.post("/admin-create-user", verificarSesion, verificarAdmin, async (req, res) => {
+  try {
+    const { username, email, password, summoner, creditos, id_summoner } = req.body
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Validar formato de id_summoner (debe contener # y tener al menos 3 caracteres)
+    if (!id_summoner || !id_summoner.includes("#") || id_summoner.length < 3) {
+      connection.release()
+      return res.redirect("/admin?error=invalid-summoner-format")
+    }
+
+    // Verificar si el usuario ya existe
+    const [existingUsers] = await connection.execute(
+      "SELECT username, email, id_summoner FROM user WHERE username = ? OR email = ? OR id_summoner = ?",
+      [username, email, id_summoner],
+    )
+
+    if (existingUsers.length > 0) {
+      connection.release()
+      return res.redirect("/admin?error=user-already-exists")
+    }
+
+    // Encriptar la contraseña
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    // Insertar el nuevo usuario (id_summoner como string)
+    const [result] = await connection.execute(
+      `INSERT INTO user (id_summoner, username, email, password, summoner, creditos) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [id_summoner, username, email, hashedPassword, summoner, Number.parseInt(creditos) || 100],
+    )
+
+    connection.release()
+
+    if (result.affectedRows > 0) {
+      return res.redirect("/admin?message=user-created")
+    } else {
+      return res.redirect("/admin?error=failed-to-create-user")
+    }
+  } catch (err) {
+    console.error("Error al crear usuario:", err)
+    return res.redirect("/admin?error=server-error")
+  }
+})
+
+// Ruta para editar un usuario desde admin
+router.post("/admin-edit-user", verificarSesion, verificarAdmin, async (req, res) => {
+  try {
+    const { user_id, username, email, summoner, creditos, password, id_summoner } = req.body
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Validar formato de id_summoner (debe contener # y tener al menos 3 caracteres)
+    if (!id_summoner || !id_summoner.includes("#") || id_summoner.length < 3) {
+      connection.release()
+      return res.redirect("/admin?error=invalid-summoner-format")
+    }
+
+    // Verificar si el usuario existe
+    const [userCheck] = await connection.execute("SELECT * FROM user WHERE id_summoner = ?", [user_id])
+
+    if (userCheck.length === 0) {
+      connection.release()
+      return res.redirect("/admin?error=user-not-found")
+    }
+
+    // Verificar si el username, email o id_summoner ya existen (excepto para el usuario actual)
+    const [existingUsers] = await connection.execute(
+      "SELECT username, email, id_summoner FROM user WHERE (username = ? OR email = ? OR id_summoner = ?) AND id_summoner != ?",
+      [username, email, id_summoner, user_id],
+    )
+
+    if (existingUsers.length > 0) {
+      connection.release()
+      return res.redirect("/admin?error=username-email-or-id-exists")
+    }
+
+    // Preparar la consulta de actualización
+    let updateQuery = `UPDATE user SET id_summoner = ?, username = ?, email = ?, summoner = ?, creditos = ?`
+    const updateParams = [id_summoner, username, email, summoner, Number.parseInt(creditos)]
+
+    // Si se proporcionó una nueva contraseña, incluirla en la actualización
+    if (password && password.trim() !== "") {
+      const hashedPassword = await bcrypt.hash(password, 10)
+      updateQuery += `, password = ?`
+      updateParams.push(hashedPassword)
+    }
+
+    updateQuery += ` WHERE id_summoner = ?`
+    updateParams.push(user_id)
+
+    // Actualizar el usuario
+    const [result] = await connection.execute(updateQuery, updateParams)
+
+    connection.release()
+
+    if (result.affectedRows > 0) {
+      return res.redirect("/admin?message=user-updated")
+    } else {
+      return res.redirect("/admin?error=failed-to-update-user")
+    }
+  } catch (err) {
+    console.error("Error al actualizar usuario:", err)
+    return res.redirect("/admin?error=server-error")
+  }
+})
+
+// Ruta para ver disputas
+router.get("/admin/disputes", verificarSesion, verificarAdmin, async (req, res) => {
+  try {
+    const connection = await global.poolPromise.getConnection()
+
+    // Obtener partidas en disputa
+    const [disputes] = await connection.execute(`
+      SELECT g.*, 
+             ub.username as blue_username, 
+             ur.username as red_username,
+             ub.id_summoner as blue_id,
+             ur.id_summoner as red_id
+      FROM game g 
+      JOIN user ub ON g.id_summoner_blue = ub.id_summoner 
+      JOIN user ur ON g.id_summoner_red = ur.id_summoner 
+      WHERE g.dispute = true AND g.winner IS NULL
+      ORDER BY g.created_at DESC
+    `)
+
+    connection.release()
+
+    res.render("admin-disputes", {
+      title: "Gestión de Disputas",
+      username: req.username,
+      disputes: disputes,
+      message: req.query.message,
+      error: req.query.error,
+    })
+  } catch (err) {
+    console.error("Error al cargar disputas:", err)
+    res.redirect("/admin?error=server-error")
+  }
+})
+
+// Ruta para resolver una disputa
+router.post("/admin/resolve-dispute", verificarSesion, verificarAdmin, async (req, res) => {
+  try {
+    const { match_id, resolution, winner_id } = req.body
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Obtener información de la partida
+    const [matchRows] = await connection.execute("SELECT * FROM game WHERE id_game = ? AND dispute = true", [match_id])
+
+    if (matchRows.length === 0) {
+      connection.release()
+      return res.redirect("/admin/disputes?error=match-not-found")
+    }
+
+    const match = matchRows[0]
+
+    if (resolution === "declare_winner" && winner_id) {
+      // Asignar ganador y transferir créditos
+      await connection.execute("UPDATE game SET winner = ?, dispute = false WHERE id_game = ?", [winner_id, match_id])
+
+      const totalCredits = match.creditos * 2
+      await connection.execute("UPDATE user SET creditos = creditos + ? WHERE id_summoner = ?", [
+        totalCredits,
+        winner_id,
+      ])
+
+      // Marcar créditos como transferidos
+      await connection.execute("UPDATE game SET credits_transferred = true WHERE id_game = ?", [match_id])
+
+      // Notificar a ambos jugadores
+      await createNotification(
+        match.id_summoner_blue,
+        "dispute_resolved",
+        `La disputa de tu partida ha sido resuelta por un administrador.`,
+        match_id,
+      )
+
+      await createNotification(
+        match.id_summoner_red,
+        "dispute_resolved",
+        `La disputa de tu partida ha sido resuelta por un administrador.`,
+        match_id,
+      )
+
+      if (winner_id === match.id_summoner_blue || winner_id === match.id_summoner_red) {
+        await createNotification(
+          winner_id,
+          "match_won",
+          `¡Has ganado la partida disputada! Se han añadido ${totalCredits} créditos a tu cuenta.`,
+          match_id,
+        )
+      }
+    } else if (resolution === "no_winner") {
+      // Devolver créditos a ambos jugadores
+      await connection.execute("UPDATE game SET dispute = false WHERE id_game = ?", [match_id])
+
+      await connection.execute("UPDATE user SET creditos = creditos + ? WHERE id_summoner = ?", [
+        match.creditos,
+        match.id_summoner_blue,
+      ])
+
+      await connection.execute("UPDATE user SET creditos = creditos + ? WHERE id_summoner = ?", [
+        match.creditos,
+        match.id_summoner_red,
+      ])
+
+      // Notificar a ambos jugadores
+      await createNotification(
+        match.id_summoner_blue,
+        "dispute_resolved",
+        `La disputa de tu partida ha sido resuelta. Se han devuelto tus créditos.`,
+        match_id,
+      )
+
+      await createNotification(
+        match.id_summoner_red,
+        "dispute_resolved",
+        `La disputa de tu partida ha sido resuelta. Se han devuelto tus créditos.`,
+        match_id,
+      )
+    }
+
+    connection.release()
+    return res.redirect("/admin/disputes?message=dispute-resolved")
+  } catch (err) {
+    console.error("Error al resolver disputa:", err)
+    return res.redirect("/admin/disputes?error=server-error")
+  }
+})
+
+// Ruta para eliminar un usuario
+router.get("/delete-user/:id_summoner", verificarSesion, verificarAdmin, async (req, res) => {
+  let connection;
+
+  try {
+    const idSummoner = req.params.id_summoner;
+    console.log("Intentando eliminar usuario con id_summoner:", idSummoner);
+
+    connection = await global.poolPromise.getConnection();
+    await connection.beginTransaction();
+
+    const [userCheck] = await connection.execute(
+      "SELECT id_user, username, id_summoner FROM user WHERE id_summoner = ?", 
+      [idSummoner]
+    );
+
+    if (userCheck.length === 0) {
+      await connection.rollback();
+      connection.release();
+      return res.redirect("/admin?error=user-not-found");
+    }
+
+    const user = userCheck[0];
+    const userId = user.id_user;
+
+    if (user.username === "admin") {
+      await connection.rollback();
+      connection.release();
+      return res.redirect("/admin?error=cannot-delete-admin");
+    }
+
+    // ... aquí continúa todo el flujo de eliminación ...
+
+    const [userResult] = await connection.execute("DELETE FROM user WHERE id_user = ?", [userId]);
+
+    await connection.commit();
+    connection.release();
+
+    return userResult.affectedRows > 0
+      ? res.redirect("/admin?message=user-deleted")
+      : res.redirect("/admin?error=failed-to-delete-user");
+
+  } catch (err) {
+    console.error("❌ Error al eliminar usuario:", err);
+    if (connection) {
+      try {
+        await connection.rollback();
+        connection.release();
+      } catch (rollbackErr) {
+        console.error("Error en rollback:", rollbackErr);
+      }
+    }
+    return res.redirect("/admin?error=server-error");
+  }
+});
+
+
+
+router.get("/debug-user/:id", verificarSesion, verificarAdmin, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const connection = await global.poolPromise.getConnection();
+
+    // Verificar usuario
+    const [user] = await connection.execute("SELECT * FROM user WHERE id_user = ?", [userId]);
+    console.log("Usuario:", user);
+
+    if (user.length > 0) {
+      const idSummoner = user[0].id_summoner;
+      
+      // Verificar dependencias
+      const [notifications] = await connection.execute("SELECT COUNT(*) as count FROM notification WHERE id_summoner = ?", [idSummoner]);
+      const [invitations] = await connection.execute("SELECT COUNT(*) as count FROM team_invitation WHERE id_summoner = ? OR invited_by = ?", [idSummoner, idSummoner]);
+      const [members] = await connection.execute("SELECT COUNT(*) as count FROM team_member WHERE id_summoner = ?", [idSummoner]);
+      const [teams] = await connection.execute("SELECT COUNT(*) as count FROM team WHERE created_by = ?", [idSummoner]);
+      const [games] = await connection.execute("SELECT COUNT(*) as count FROM game WHERE id_summoner_blue = ? OR id_summoner_red = ?", [idSummoner, idSummoner]);
+      
+      const dependencies = {
+        notifications: notifications[0].count,
+        invitations: invitations[0].count,
+        members: members[0].count,
+        teams: teams[0].count,
+        games: games[0].count
+      };
+      
+      console.log("Dependencias:", dependencies);
+      
+      connection.release();
+      return res.json({ user: user[0], dependencies });
+    }
+    
+    connection.release();
+    return res.json({ error: "Usuario no encontrado" });
+    
+  } catch (err) {
+    console.error("Error en debug:", err);
+    return res.json({ error: err.message });
+  }
+});
 
 // Modificar la ruta de matchfinder para obtener y mostrar las partidas disponibles
 router.get("/matchfinder", async (req, res) => {
@@ -960,7 +1570,6 @@ router.post("/rate-opponent/:id", verificarSesion, async (req, res) => {
 
     // Marcar que el usuario ha calificado al oponente
     const ratedField = isBluePlayer ? "blue_rated_red" : "red_rated_blue"
-
     await connection.execute(`UPDATE game SET ${ratedField} = true WHERE id_game = ?`, [matchId])
 
     // Notificar al oponente sobre la calificación
@@ -1091,23 +1700,28 @@ router.get("/tournament/:id", verificarSesion, async (req, res) => {
   try {
     const connection = await global.poolPromise.getConnection()
 
-    // Obtener información del usuario
-    const [userRows] = await connection.execute("SELECT id_summoner FROM user WHERE username = ?", [username])
+    // Obtener información del usuario INCLUYENDO LOS CRÉDITOS
+    const [userRows] = await connection.execute(
+      "SELECT id_summoner, creditos FROM user WHERE username = ?", 
+      [username]
+    )
     const userId = userRows[0].id_summoner
+    const userCreditos = userRows[0].creditos || 0 // Agregar los créditos
 
     // Obtener notificaciones no leídas
     const [notifications] = await connection.execute(
       `SELECT * FROM notification 
        WHERE id_summoner = ? 
-       AND is_read = FALSE
+       AND is_read = FALSE 
        ORDER BY created_at DESC`,
       [userId],
     )
 
     // Obtener información del torneo
-    const [tournamentRows] = await connection.execute(`SELECT * FROM tournament WHERE id_tournament = ?`, [
-      tournamentId,
-    ])
+    const [tournamentRows] = await connection.execute(
+      `SELECT * FROM tournament WHERE id_tournament = ?`, 
+      [tournamentId]
+    )
 
     if (tournamentRows.length === 0) {
       connection.release()
@@ -1158,6 +1772,7 @@ router.get("/tournament/:id", verificarSesion, async (req, res) => {
     res.render("tournament_detail", {
       title: tournament.name,
       username: username,
+      userCreditos: userCreditos, // AGREGAR LOS CRÉDITOS AQUÍ
       tournament: tournament,
       participants: participants,
       userTeams: userTeams,
@@ -1177,7 +1792,7 @@ router.get("/tournament/:id", verificarSesion, async (req, res) => {
 // Ruta para crear un nuevo equipo
 router.post("/create-team", verificarSesion, uploadTeam.single("team_logo"), async (req, res) => {
   try {
-    const { team_name, team_tag, team_description } = req.body
+    const { team_name, team_tag, team_description, captain_role } = req.body
 
     // Obtener el id_summoner del usuario
     const connection = await global.poolPromise.getConnection()
@@ -1221,11 +1836,14 @@ router.post("/create-team", verificarSesion, uploadTeam.single("team_logo"), asy
 
     const teamId = result.insertId
 
-    // Añadir al creador como capitán del equipo
+    // Determinar el rol del capitán (si no eligió uno, será "Capitán")
+    const role = captain_role || "Capitán"
+
+    // Añadir al creador como capitán del equipo con el rol seleccionado
     await connection.execute(
       `INSERT INTO team_member (id_team, id_summoner, role, is_captain)
        VALUES (?, ?, ?, ?)`,
-      [teamId, userId, "Capitán", true],
+      [teamId, userId, role, true],
     )
 
     connection.release()
@@ -1233,6 +1851,53 @@ router.post("/create-team", verificarSesion, uploadTeam.single("team_logo"), asy
   } catch (err) {
     console.error("Error al crear equipo:", err)
     return res.redirect("/tournament?error=server-error")
+  }
+})
+
+// Añadir esta nueva ruta GET para crear equipos
+router.get("/create-team", verificarSesion, async (req, res) => {
+  const username = req.username
+
+  try {
+    const connection = await global.poolPromise.getConnection()
+
+    // Obtener el id_summoner del usuario
+    const [userRows] = await connection.execute("SELECT id_summoner FROM user WHERE username = ?", [username])
+
+    if (userRows.length === 0) {
+      connection.release()
+      return res.redirect("/login")
+    }
+
+    const userId = userRows[0].id_summoner
+
+    // Obtener notificaciones no leídas
+    const [notifications] = await connection.execute(
+      `SELECT * FROM notification 
+       WHERE id_summoner = ? 
+       AND is_read = FALSE
+       ORDER BY created_at DESC`,
+      [userId],
+    )
+
+    connection.release()
+
+    res.render("create_team", {
+      title: "Crear Equipo",
+      username: username,
+      notifications: notifications,
+      notificationCount: notifications.length,
+      error: null, // Asegurarnos de que error siempre esté definido
+    })
+  } catch (err) {
+    console.error("Error al cargar la página de crear equipo:", err)
+    res.render("create_team", {
+      title: "Crear Equipo",
+      username: username,
+      notifications: [],
+      notificationCount: 0,
+      error: "Error al cargar la página",
+    })
   }
 })
 
@@ -1332,6 +1997,75 @@ router.get("/team/:id", verificarSesion, async (req, res) => {
   } catch (err) {
     console.error("Error al cargar detalles del equipo:", err)
     return res.redirect("/tournament?error=server-error")
+  }
+})
+
+// Añadir la ruta para editar un equipo
+router.post("/edit-team", verificarSesion, uploadTeam.single("team_logo"), async (req, res) => {
+  try {
+    const { team_id, team_name, team_tag, team_description } = req.body
+    const username = req.username
+
+    console.log("Editando equipo:", team_id, team_name, team_tag, team_description)
+    console.log("Archivo:", req.file)
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Verificar si el usuario es capitán del equipo
+    const [captainRows] = await connection.execute(
+      `SELECT tm.* FROM team_member tm
+       JOIN user u ON tm.id_summoner = u.id_summoner
+       WHERE tm.id_team = ? AND u.username = ? AND tm.is_captain = true`,
+      [team_id, username],
+    )
+
+    if (captainRows.length === 0) {
+      connection.release()
+      return res.redirect(`/team/${team_id}?error=not-team-captain`)
+    }
+
+    // Verificar si el nombre o tag ya existen (excepto para el equipo actual)
+    const [existingTeams] = await connection.execute(
+      "SELECT * FROM team WHERE (name = ? OR tag = ?) AND id_team != ?",
+      [team_name, team_tag, team_id],
+    )
+
+    if (existingTeams.length > 0) {
+      connection.release()
+      return res.redirect(`/team/${team_id}?error=team-name-or-tag-exists`)
+    }
+
+    // Preparar la consulta SQL para actualizar el equipo
+    let updateQuery = `UPDATE team SET name = ?, tag = ?, description = ?`
+    const updateParams = [team_name, team_tag, team_description]
+
+    // Si se subió un nuevo logo, añadirlo a la actualización
+    if (req.file) {
+      const logoPath = `/uploads/teams/${req.file.filename}`
+      updateQuery += `, logo_path = ?`
+      updateParams.push(logoPath)
+    }
+
+    // Añadir la condición WHERE
+    updateQuery += ` WHERE id_team = ?`
+    updateParams.push(team_id)
+
+    console.log("Query:", updateQuery)
+    console.log("Params:", updateParams)
+
+    // Actualizar el equipo en la base de datos
+    const [result] = await connection.execute(updateQuery, updateParams)
+
+    connection.release()
+
+    if (result.affectedRows > 0) {
+      return res.redirect(`/team/${team_id}?message=team-updated`)
+    } else {
+      return res.redirect(`/team/${team_id}?error=failed-to-update-team`)
+    }
+  } catch (err) {
+    console.error("Error al actualizar equipo:", err)
+    return res.redirect(`/team/${req.body.team_id}?error=server-error`)
   }
 })
 
@@ -1911,11 +2645,17 @@ router.get("/notifications", verificarSesion, async (req, res) => {
 
     // Obtener todas las notificaciones del usuario
     const [notifications] = await connection.execute(
-      `SELECT n.*, ti.status 
-       FROM notification n
-       LEFT JOIN team_invitation ti ON n.related_id = ti.id_invitation AND n.type = 'team_invitation'
-       WHERE n.id_summoner = ? 
-       ORDER BY n.created_at DESC`,
+      `SELECT n.*, 
+   CASE 
+     WHEN n.type = 'team_invitation' THEN (
+       SELECT status FROM team_invitation 
+       WHERE id_invitation = n.related_id
+     )
+     ELSE NULL 
+   END as invitation_status
+   FROM notification n
+   WHERE n.id_summoner = ? 
+   ORDER BY n.created_at DESC`,
       [userId],
     )
 
@@ -1945,11 +2685,196 @@ router.get("/notifications", verificarSesion, async (req, res) => {
   }
 })
 
+// Ruta para marcar una notificación como leída
+router.post("/mark-notification-read", verificarSesion, async (req, res) => {
+  try {
+    const { notification_id } = req.body
+    const username = req.username
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Verificar que la notificación pertenezca al usuario
+    const [userRows] = await connection.execute(`SELECT id_summoner FROM user WHERE username = ?`, [username])
+
+    if (userRows.length === 0) {
+      connection.release()
+      return res.redirect("/notifications?error=user-not-found")
+    }
+
+    const userId = userRows[0].id_summoner
+
+    // Marcar la notificación como leída
+    await connection.execute(
+      `UPDATE notification SET is_read = true 
+       WHERE id_notification = ? AND id_summoner = ?`,
+      [notification_id, userId],
+    )
+
+    connection.release()
+    return res.redirect("/notifications?message=notification-marked-read")
+  } catch (err) {
+    console.error("Error al marcar notificación como leída:", err)
+    return res.redirect("/notifications?error=server-error")
+  }
+})
+
+// Ruta para eliminar una notificación
+router.post("/delete-notification", verificarSesion, async (req, res) => {
+  try {
+    const { notification_id } = req.body
+    const username = req.username
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Verificar que la notificación pertenezca al usuario
+    const [userRows] = await connection.execute(`SELECT id_summoner FROM user WHERE username = ?`, [username])
+
+    if (userRows.length === 0) {
+      connection.release()
+      return res.redirect("/notifications?error=user-not-found")
+    }
+
+    const userId = userRows[0].id_summoner
+
+    // Eliminar la notificación
+    await connection.execute(
+      `DELETE FROM notification 
+       WHERE id_notification = ? AND id_summoner = ?`,
+      [notification_id, userId],
+    )
+
+    connection.release()
+    return res.redirect("/notifications?message=notification-deleted")
+  } catch (err) {
+    console.error("Error al eliminar notificación:", err)
+    return res.redirect("/notifications?error=server-error")
+  }
+})
+
+// Ruta para marcar todas las notificaciones como leídas
+router.get("/mark-all-notifications-read", verificarSesion, async (req, res) => {
+  try {
+    const username = req.username
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Obtener el id_summoner del usuario
+    const [userRows] = await connection.execute(`SELECT id_summoner FROM user WHERE username = ?`, [username])
+
+    if (userRows.length === 0) {
+      connection.release()
+      return res.redirect("/notifications?error=user-not-found")
+    }
+
+    const userId = userRows[0].id_summoner
+
+    // Marcar todas las notificaciones como leídas
+    await connection.execute(
+      `UPDATE notification SET is_read = true 
+       WHERE id_summoner = ?`,
+      [userId],
+    )
+
+    connection.release()
+    return res.redirect("/notifications?message=all-notifications-marked-read")
+  } catch (err) {
+    console.error("Error al marcar todas las notificaciones como leídas:", err)
+    return res.redirect("/notifications?error=server-error")
+  }
+})
+
+// Ruta para eliminar todas las notificaciones
+router.get("/delete-all-notifications", verificarSesion, async (req, res) => {
+  try {
+    const username = req.username
+
+    const connection = await global.poolPromise.getConnection()
+
+    // Obtener el id_summoner del usuario
+    const [userRows] = await connection.execute(`SELECT id_summoner FROM user WHERE username = ?`, [username])
+
+    if (userRows.length === 0) {
+      connection.release()
+      return res.redirect("/notifications?error=user-not-found")
+    }
+
+    const userId = userRows[0].id_summoner
+
+    // Eliminar todas las notificaciones
+    await connection.execute(
+      `DELETE FROM notification 
+       WHERE id_summoner = ?`,
+      [userId],
+    )
+
+    connection.release()
+    return res.redirect("/notifications?message=all-notifications-deleted")
+  } catch (err) {
+    console.error("Error al eliminar todas las notificaciones:", err)
+    return res.redirect("/notifications?error=server-error")
+  }
+})
+
 // Rutas para otras páginas
-router.get("/more", (req, res) => {
-  const username = getUsernameFromToken(req)
-  console.log("Username obtenido en more:", username) // Registro de depuración
-  res.render("more", { title: "Gaming Community", username: username })
+router.get("/more", async (req, res) => {
+  try {
+    const username = getUsernameFromToken(req)
+    console.log("Username obtenido en more:", username) // Registro de depuración
+    
+    let userCreditos = 0;
+    let notifications = [];
+    let notificationCount = 0;
+    
+    // Si hay un usuario logueado, obtener sus créditos y notificaciones
+    if (username) {
+      const connection = await global.poolPromise.getConnection()
+      try {
+        // Obtener créditos e id_summoner en una sola consulta
+        const [userRows] = await connection.execute(
+          "SELECT creditos, id_summoner FROM user WHERE username = ?", 
+          [username]
+        )
+        
+        if (userRows.length > 0) {
+          userCreditos = userRows[0].creditos || 0
+          const userIdSummoner = userRows[0].id_summoner;
+          
+          // Obtener notificaciones no leídas
+          const [notificationRows] = await connection.execute(
+            `SELECT * FROM notification 
+             WHERE id_summoner = ? 
+             AND is_read = FALSE
+             ORDER BY created_at DESC`,
+            [userIdSummoner]
+          )
+          
+          notifications = notificationRows;
+          notificationCount = notifications.length;
+        }
+      } catch (error) {
+        console.error("Error al obtener datos del usuario:", error)
+      } finally {
+        connection.release()
+      }
+    }
+    
+    res.render("more", { 
+      title: "Gaming Community", 
+      username: username,
+      userCreditos: userCreditos,
+      notifications: notifications,        // Añadir esta línea
+      notificationCount: notificationCount // Añadir esta línea
+    })
+  } catch (error) {
+    console.error("Error en ruta /more:", error)
+    res.render("more", { 
+      title: "Gaming Community", 
+      username: getUsernameFromToken(req),
+      userCreditos: 0,
+      notifications: [],        // Añadir esta línea
+      notificationCount: 0      // Añadir esta línea
+    })
+  }
 })
 
 router.get("/Mapa_del_sitio", (req, res) => {
@@ -2003,61 +2928,198 @@ router.get("/create-match", verificarSesion, async (req, res) => {
 // Ruta para procesar la creación de partidas
 router.post("/process-create-match", verificarSesion, async (req, res) => {
   try {
-    const { idGameLol, mode, map, format, creditos, region, skill_level } = req.body
-    const creditosValue = Number.parseFloat(creditos)
+    const { creditos, region, map, mode, format, skill_level } = req.body
+    const username = req.username
 
-    // Obtener el id_summoner y créditos del usuario actual
+    console.log("Datos recibidos:", { creditos, region, map, mode, format, skill_level, username })
+
+    // Validar que los campos requeridos existan
+    if (!creditos || !region || !map) {
+      return res.json({ err: true, errmsg: "Faltan campos requeridos" })
+    }
+
+    // Limpiar y validar los datos
+    const cleanCreditos = Number.parseFloat(creditos)
+    const cleanRegion = region || "euw"
+    const cleanMap = map || "Grieta del Invocador"
+    const cleanMode = mode || "1vs1"
+    const cleanFormat = format || "Partida completa"
+    const cleanSkillLevel = skill_level || "Unranked"
+
+    console.log("Datos limpiados:", { cleanCreditos, cleanRegion, cleanMap, cleanMode, cleanFormat, cleanSkillLevel })
+
+    if (isNaN(cleanCreditos) || cleanCreditos <= 0) {
+      return res.json({ err: true, errmsg: "Cantidad de créditos inválida" })
+    }
+
     const connection = await global.poolPromise.getConnection()
-    const [userRows] = await connection.execute("SELECT id_summoner, creditos FROM user WHERE username = ?", [
-      req.username,
-    ])
+
+    // Obtener el id_summoner del usuario
+    const [userRows] = await connection.execute("SELECT id_summoner, creditos FROM user WHERE username = ?", [username])
 
     if (userRows.length === 0) {
       connection.release()
-      return res.status(404).json({ err: true, errmsg: "Usuario no encontrado" })
+      return res.json({ err: true, errmsg: "Usuario no encontrado" })
     }
 
-    const id_summoner_blue = userRows[0].id_summoner
+    const userId = userRows[0].id_summoner
     const userCreditos = userRows[0].creditos
 
+    console.log("Usuario encontrado:", { userId, userCreditos, cleanCreditos })
+
     // Verificar que el usuario tenga suficientes créditos
-    if (userCreditos < creditosValue) {
+    if (userCreditos < cleanCreditos) {
       connection.release()
-      return res.status(400).json({ err: true, errmsg: "No tienes suficientes créditos" })
+      return res.json({ err: true, errmsg: "No tienes suficientes créditos para crear esta partida" })
     }
 
-    // Restar los créditos al usuario creador
-    await connection.execute("UPDATE user SET creditos = creditos - ? WHERE id_summoner = ?", [
-      creditosValue,
-      id_summoner_blue,
-    ])
+    // Restar los créditos al usuario
+    await connection.execute("UPDATE user SET creditos = creditos - ? WHERE id_summoner = ?", [cleanCreditos, userId])
 
-    // Insertar la nueva partida en la base de datos
+    // Crear la partida en la base de datos
     const [result] = await connection.execute(
-      `INSERT INTO game (idGameLol, id_summoner_blue, mode, map, format, creditos, region, skill_level) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [idGameLol, id_summoner_blue, mode, map, format, creditosValue, region, skill_level],
+      `INSERT INTO game (id_summoner_blue, creditos, region, map, mode, format, skill_level, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, NOW())`,
+      [userId, cleanCreditos, cleanRegion, cleanMap, cleanMode, cleanFormat, cleanSkillLevel],
     )
+
     connection.release()
 
     if (result.affectedRows > 0) {
-      console.log("Partida creada correctamente:", idGameLol)
-      res.json({ err: false, result: { message: "Partida creada correctamente", id: result.insertId } })
+      console.log("Partida creada exitosamente con ID:", result.insertId)
+      return res.json({
+        err: false,
+        result: {
+          message: "Partida creada exitosamente",
+          matchId: result.insertId,
+        },
+      })
     } else {
-      console.log("Error al crear partida")
-      res.status(500).json({ err: true, errmsg: "Error al crear partida" })
+      // Si falla, devolver los créditos
+      const connection2 = await global.poolPromise.getConnection()
+      await connection2.execute("UPDATE user SET creditos = creditos + ? WHERE id_summoner = ?", [
+        cleanCreditos,
+        userId,
+      ])
+      connection2.release()
+      return res.json({ err: true, errmsg: "Error al crear la partida" })
     }
   } catch (err) {
-    console.error("Error al procesar la creación de partida:", err)
-    res.status(500).json({ err: true, errmsg: "Error al procesar la creación de partida: " + err.message })
+    console.error("Error al crear partida:", err)
+    return res.status(500).json({
+      err: true,
+      errmsg: "Error en el servidor: " + err.message,
+    })
   }
 })
 
-// Login y creación de sesión con token
+router.post("/rate-opponent/:id", verificarSesion, async (req, res) => {
+  const matchId = req.params.id
+  const username = req.username
+  const { rating } = req.body
+
+  // Convert rating to numeric value
+  let ratingValue = 0
+  switch (rating) {
+    case "very_positive":
+      ratingValue = 2
+      break
+    case "positive":
+      ratingValue = 1
+      break
+    case "neutral":
+      ratingValue = 0
+      break
+    case "negative":
+      ratingValue = -1
+      break
+    case "very_negative":
+      ratingValue = -2
+      break
+    default:
+      ratingValue = 0
+  }
+
+  try {
+    const connection = await global.poolPromise.getConnection()
+
+    // Get match information with rating status
+    const [matchRows] = await connection.execute(
+      `SELECT g.*, 
+             ub.username as blue_username, ub.id_summoner as blue_summoner_id,
+             ur.username as red_username, ur.id_summoner as red_summoner_id,
+             g.blue_rated_red, g.red_rated_blue
+      FROM game g 
+      JOIN user ub ON g.id_summoner_blue = ub.id_summoner 
+      JOIN user ur ON g.id_summoner_red = ur.id_summoner 
+      WHERE g.id_game = ?`,
+      [matchId],
+    )
+
+    if (matchRows.length === 0) {
+      connection.release()
+      return res.redirect("/matchfinder?error=match-not-found")
+    }
+
+    const match = matchRows[0]
+    const isBluePlayer = match.blue_username === username
+    const isRedPlayer = match.red_username === username
+
+    if (!isBluePlayer && !isRedPlayer) {
+      connection.release()
+      return res.redirect("/matchfinder?error=not-in-match")
+    }
+
+    // Verify match is completed
+    if (!match.winner) {
+      connection.release()
+      return res.redirect(`/match-result/${matchId}?error=match-not-completed`)
+    }
+
+    // CRITICAL: Check if user has already rated opponent
+    const hasAlreadyRated = (isBluePlayer && match.blue_rated_red) || (isRedPlayer && match.red_rated_blue)
+
+    if (hasAlreadyRated) {
+      connection.release()
+      return res.redirect(`/match-result/${matchId}?error=already-rated`)
+    }
+
+    // Update opponent's reputation
+    const opponentId = isBluePlayer ? match.red_summoner_id : match.blue_summoner_id
+
+    await connection.execute("UPDATE user SET reputation = reputation + ? WHERE id_summoner = ?", [
+      ratingValue,
+      opponentId,
+    ])
+
+    // Mark that user has rated opponent (PREVENT FUTURE RATINGS)
+    const ratedField = isBluePlayer ? "blue_rated_red" : "red_rated_blue"
+    await connection.execute(`UPDATE game SET ${ratedField} = true WHERE id_game = ?`, [matchId])
+
+    // Create notification
+    let ratingText = "neutral"
+    if (ratingValue > 0) ratingText = ratingValue > 1 ? "muy positiva" : "positiva"
+    if (ratingValue < 0) ratingText = ratingValue < -1 ? "muy negativa" : "negativa"
+
+    await createNotification(
+      opponentId,
+      "reputation_rating",
+      `${username} te ha dado una calificación ${ratingText} (${ratingValue > 0 ? "+" : ""}${ratingValue}).`,
+      matchId,
+    )
+
+    connection.release()
+    return res.redirect(`/matchfinder?message=rating-submitted`)
+  } catch (err) {
+    console.error("Error al calificar al oponente:", err)
+    return res.redirect(`/matchfinder?error=server-error`)
+  }
+})
+
+// Ruta para procesar el login
 router.post("/procesar_login", async (req, res) => {
   const { username, password } = req.body
-  console.log("Intento de login para:", username)
-  console.log("Datos recibidos:", req.body)
+  console.log("Procesando login para:", username)
 
   try {
     // Verificar si es el usuario admin
@@ -2072,124 +3134,544 @@ router.post("/procesar_login", async (req, res) => {
       }
 
       console.log("Sesión de administrador creada:", token)
-      res.cookie("token", token, { httpOnly: true, maxAge: 7 * 86400000 }) // Guardar token en cookie
-      return res.json({ err: false, result: { token, isAdmin: true } })
+      res.cookie("token", token, {
+        httpOnly: true,
+        maxAge: 7 * 86400000,
+        path: "/",
+      })
+
+      console.log("Login exitoso para admin, enviando respuesta")
+      return res.json({
+        err: false,
+        result: {
+          token,
+          isAdmin: true,
+          redirect: "/admin",
+        },
+      })
     }
 
+    // Verificar usuarios normales en la base de datos
     const connection = await global.poolPromise.getConnection()
-    const [rows] = await connection.execute("SELECT * FROM user WHERE username = ?", [username])
+    const [rows] = await connection.execute("SELECT id_summoner, username, password FROM user WHERE username = ?", [
+      username,
+    ])
     connection.release()
 
-    console.log("Resultados de la consulta:", rows.length > 0 ? "Usuario encontrado" : "Usuario no encontrado")
-
-    if (rows.length > 0) {
-      const user = rows[0]
-      console.log("Usuario encontrado:", user.username)
-
-      const passwordMatch = await bcrypt.compare(password, user.password)
-      console.log("Contraseña coincide:", passwordMatch)
-
-      if (passwordMatch) {
-        const token = uuid.v4()
-        sesiones[token] = {
-          token: token,
-          userId: user.id_user,
-          username: user.username, // Guardar el nombre del usuario en la sesión
-          caducidad: Date.now() + 7 * 86400000, // 7 días
-        }
-
-        console.log("Sesión creada:", token)
-        console.log("Sesiones actuales:", Object.keys(sesiones))
-
-        res.cookie("token", token, { httpOnly: true, maxAge: 7 * 86400000 }) // Guardar token en cookie
-        return res.json({ err: false, result: { token } })
-      } else {
-        console.log("Contraseña incorrecta para:", username)
-        res.status(401).json({ err: true, errmsg: "Contraseña incorrecta" })
-      }
-    } else {
+    if (rows.length === 0) {
       console.log("Usuario no encontrado:", username)
-      res.status(404).json({ err: true, errmsg: "Usuario no encontrado" })
+      return res.json({ err: true, errmsg: "Usuario no encontrado" })
     }
+
+    const user = rows[0]
+    const passwordMatch = await bcrypt.compare(password, user.password)
+
+    if (!passwordMatch) {
+      console.log("Contraseña incorrecta para:", username)
+      return res.json({ err: true, errmsg: "Contraseña incorrecta" })
+    }
+
+    // Crear sesión para usuario normal
+    const token = uuid.v4()
+    sesiones[token] = {
+      token: token,
+      userId: user.id_summoner,
+      username: user.username,
+      isAdmin: false,
+      caducidad: Date.now() + 7 * 86400000, // 7 días
+    }
+
+    console.log("Sesión creada para usuario:", username)
+    res.cookie("token", token, {
+      httpOnly: true,
+      maxAge: 7 * 86400000,
+      path: "/",
+    })
+
+    return res.json({
+      err: false,
+      result: {
+        token,
+        isAdmin: false,
+        redirect: "/dashboard",
+      },
+    })
   } catch (err) {
     console.error("Error en login:", err)
-    res.status(500).json({ err: true, errmsg: "Error al procesar login: " + err.message })
+    return res.status(500).json({
+      err: true,
+      errmsg: "Error en el servidor: " + err.message,
+    })
   }
 })
 
-// Registro de usuario
+// Ruta para procesar el registro
 router.post("/procesar_registro", async (req, res) => {
-  const { username, summoner, idSummoner, email, password } = req.body
-  console.log("Intento de registro para:", username)
+  const { username, idSummoner, email, password, summoner } = req.body
+
+  console.log("req.body Datos recibidos:", req.body)
+
+  console.log("Procesando registro para:", username)
 
   try {
+    // Verificar si el usuario ya existe
+    const connection = await global.poolPromise.getConnection()
+    const [existingUsers] = await connection.execute(
+      "SELECT username, email FROM user WHERE username = ? OR email = ?",
+      [username, email],
+    )
+
+    if (existingUsers.length > 0) {
+      connection.release()
+      return res.json({
+        err: true,
+        errmsg: "El usuario o email ya existe",
+      })
+    }
+
+    // Encriptar la contraseña
     const hashedPassword = await bcrypt.hash(password, 10)
 
-    const connection = await global.poolPromise.getConnection()
+    // Insertar el nuevo usuario
     const [result] = await connection.execute(
-      "INSERT INTO user (username, summoner, id_summoner, email, password, reputation, creditos) VALUES (?, ?, ?, ?, ?, ?, ?)",
-      [username, summoner, idSummoner, email, hashedPassword, 0, 100.0], // Asignar 100 créditos iniciales
+      `INSERT INTO user (username, id_summoner, email, password, summoner, creditos) 
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [username, idSummoner, email, hashedPassword, summoner, 100], // 100 créditos iniciales
     )
+
+    console.log("result Resultado del insert:", result)
+
     connection.release()
 
     if (result.affectedRows > 0) {
-      console.log("Usuario registrado correctamente:", username)
-      res.json({ err: false, result: { message: "Usuario registrado correctamente" } })
+      console.log("Usuario registrado exitosamente:", username)
+      return res.json({
+        err: false,
+        result: { message: "Usuario registrado exitosamente" },
+      })
     } else {
-      console.log("Error al registrar usuario:", username)
-      res.status(500).json({ err: true, errmsg: "Error al registrar usuario" })
+      return res.json({
+        err: true,
+        errmsg: "Error al registrar usuario",
+      })
     }
   } catch (err) {
     console.error("Error en registro:", err)
-    res.status(500).json({ err: true, errmsg: "Error al procesar registro: " + err.message })
+    return res.status(500).json({
+      err: true,
+      errmsg: "Error en el servidor: " + err.message,
+    })
   }
 })
 
-// Añadir esta nueva ruta GET para crear equipos
-router.get("/create-team", verificarSesion, async (req, res) => {
-  const username = req.username
+//// Paypal ===========================================================
+require('dotenv').config({ path: './.env' });
+// PayPal configuration
+const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID;
+const PAYPAL_CLIENT_SECRET = process.env.PAYPAL_CLIENT_SECRET;
+const PAYPAL_ENVIRONMENT = process.env.NODE_ENV === 'production'
+  ? new paypal.core.LiveEnvironment(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET)
+  : new paypal.core.SandboxEnvironment(PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET);
 
+const paypalClient = new paypal.core.PayPalHttpClient(PAYPAL_ENVIRONMENT);
+
+// PayPal routes
+router.post('/paypal/create-payment', verificarSesion, async (req, res) => {
   try {
-    const connection = await global.poolPromise.getConnection()
+    const { value } = req.body;
 
-    // Obtener el id_summoner del usuario
-    const [userRows] = await connection.execute("SELECT id_summoner FROM user WHERE username = ?", [username])
+    const request = new paypal.orders.OrdersCreateRequest();
+    request.prefer('return=representation');
+    request.requestBody({
+      intent: 'CAPTURE',
+      purchase_units: [{
+        amount: {
+          currency_code: 'USD', // Replace with your currency
+          value: value,
+        }
+      }]
+    });
 
-    if (userRows.length === 0) {
-      connection.release()
-      return res.redirect("/login")
+    let order;
+    try {
+      order = await paypalClient.execute(request);
+    } catch (err) {
+
+      console.error(err);
+      return res.status(500).json({ err: true, errmsg: 'Error creating payment', details: err.message });
     }
 
-    const userId = userRows[0].id_summoner
 
-    // Obtener notificaciones no leídas
-    const [notifications] = await connection.execute(
-      `SELECT * FROM notification 
-       WHERE id_summoner = ? 
-       AND is_read = FALSE
-       ORDER BY created_at DESC`,
-      [userId],
-    )
-
-    connection.release()
-
-    res.render("create_team", {
-      title: "Crear Equipo",
-      username: username,
-      notifications: notifications,
-      notificationCount: notifications.length,
-      error: null, // Asegurarnos de que error siempre esté definido
-    })
+    res.json({ id: order.result.id });
   } catch (err) {
-    console.error("Error al cargar la página de crear equipo:", err)
-    res.render("create_team", {
-      title: "Crear Equipo",
-      username: username,
-      notifications: [],
-      notificationCount: 0,
-      error: "Error al cargar la página",
-    })
+    console.error(err);
+    res.status(500).json({ err: true, errmsg: 'Error creating payment', details: err.message });
   }
-})
+});
+
+router.post('/paypal/capture-payment', verificarSesion, async (req, res) => {
+  const { orderID } = req.body;
+
+  const request = new paypal.orders.OrdersCaptureRequest(orderID);
+  request.requestBody({});
+
+  try {
+    const capture = await paypalClient.execute(request);
+    // TODO: Verify capture.result.status is 'COMPLETED'
+    // TODO: Save transaction details to your database.
+
+    res.json({ success: true, details: capture });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ err: true, errmsg: 'Error capturing payment', details: err.message });
+  }
+});
+
+// Ruta para mostrar la página de añadir créditos
+router.get('/add-credits', verificarSesion, async (req, res) => {
+  try {
+    // El middleware verificarSesion ya ha validado el token y establecido req.username
+    const username = req.username;
+    
+    if (!username) {
+      return res.redirect('/login');
+    }
+
+    const connection = await global.poolPromise.getConnection();
+    const [userRows] = await connection.execute(
+      'SELECT creditos FROM user WHERE username = ?',
+      [username]
+    );
+    connection.release();
+
+    if (userRows.length === 0) {
+      return res.redirect('/login');
+    }
+
+    const userCreditos = parseFloat(userRows[0].creditos) || 0;
+
+    res.render('add_credits', {
+      username: username,
+      userCreditos: userCreditos
+    });
+  } catch (err) {
+    console.error('Error al cargar página de créditos:', err);
+    res.status(500).json({ err: true, errmsg: 'Error interno del servidor' });
+  }
+});
+
+// PayPal routes para créditos
+// Update the PayPal create payment route to use your function:
+router.post('/paypal/create-credits-payment', verificarSesion, async (req, res) => {
+  try {
+    const { value, credits } = req.body;
+    const creditsNum = parseInt(credits);
+    const valueNum = parseFloat(value);
+
+    // Validar que la conversión sea correcta (100 créditos = 1 euro)
+    const expectedValue = (creditsNum / 100).toFixed(2);
+    if (Math.abs(valueNum - parseFloat(expectedValue)) > 0.01) {
+      return res.status(400).json({ err: true, errmsg: 'Conversión de créditos incorrecta' });
+    }
+
+    if (creditsNum < 100) {
+      return res.status(400).json({ err: true, errmsg: 'Cantidad mínima: 100 créditos' });
+    }
+
+    const request = new paypal.orders.OrdersCreateRequest();
+    request.prefer('return=representation');
+    request.requestBody({
+      intent: 'CAPTURE',
+      purchase_units: [{
+        amount: {
+          currency_code: 'EUR',
+          value: valueNum.toFixed(2),
+        },
+        description: `${creditsNum} créditos para BuffProfit`
+      }],
+      application_context: {
+        brand_name: 'BuffProfit',
+        landing_page: 'BILLING',
+        user_action: 'PAY_NOW'
+      }
+    });
+
+    let order;
+    try {
+      order = await paypalClient.execute(request);
+    } catch (err) {
+      console.error('PayPal Error:', err);
+      return res.status(500).json({ err: true, errmsg: 'Error creando el pago', details: err.message });
+    }
+
+    // Guardar la información del pedido temporalmente usando el objeto sesiones
+    const token = req.cookies.token;
+    const username = getUsernameFromToken(req); // Use your function
+    
+    if (sesiones[token]) {
+      sesiones[token].pendingCreditsOrder = {
+        orderID: order.result.id,
+        credits: creditsNum,
+        amount: valueNum,
+        username: username
+      };
+    } else {
+      sesiones[token] = {
+        pendingCreditsOrder: {
+          orderID: order.result.id,
+          credits: creditsNum,
+          amount: valueNum,
+          username: username
+        }
+      };
+    }
+
+    res.json({ id: order.result.id });
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ err: true, errmsg: 'Error interno del servidor', details: err.message });
+  }
+});
+
+router.post('/paypal/capture-credits-payment', verificarSesion, async (req, res) => {
+  const { orderID } = req.body;
+
+  try {
+    const token = req.cookies.token;
+    const pendingOrder = sesiones[token]?.pendingCreditsOrder;
+    
+    // Verificar que el pedido pertenece al usuario actual
+    if (!pendingOrder || pendingOrder.orderID !== orderID) {
+      return res.status(400).json({ err: true, errmsg: 'Pedido no válido' });
+    }
+
+    const request = new paypal.orders.OrdersCaptureRequest(orderID);
+    request.requestBody({});
+
+    const capture = await paypalClient.execute(request);
+    
+    if (capture.result.status === 'COMPLETED') {
+      const { credits, amount, username } = pendingOrder;
+      
+      // Actualizar los créditos del usuario en la base de datos
+      const connection = await global.poolPromise.getConnection();
+      
+      try {
+        await connection.beginTransaction();
+        
+        // Obtener créditos actuales
+        const [userRows] = await connection.execute(
+          'SELECT creditos FROM user WHERE username = ?',
+          [username]
+        );
+        
+        if (userRows.length === 0) {
+          await connection.rollback();
+          connection.release();
+          return res.status(400).json({ err: true, errmsg: 'Usuario no encontrado' });
+        }
+        
+        const currentCredits = parseFloat(userRows[0].creditos) || 0;
+        const newCredits = currentCredits + credits;
+        
+        // Actualizar créditos
+        await connection.execute(
+          'UPDATE user SET creditos = ? WHERE username = ?',
+          [newCredits, username]
+        );
+        
+        // Registrar la transacción (opcional - crear tabla de transacciones)
+        try {
+          await connection.execute(
+            `INSERT INTO transactions (username, type, amount, credits, paypal_order_id, status, created_at) 
+             VALUES (?, 'credit_purchase', ?, ?, ?, 'completed', NOW())`,
+            [username, amount, credits, orderID]
+          );
+        } catch (transErr) {
+          console.log('Tabla transactions no existe, saltando registro de transacción');
+        }
+        
+        await connection.commit();
+        connection.release();
+        
+        // Limpiar el pedido pendiente
+        if (sesiones[token]) {
+          delete sesiones[token].pendingCreditsOrder;
+        }
+        
+        res.json({ 
+          success: true, 
+          details: capture,
+          newCredits: newCredits,
+          addedCredits: credits
+        });
+        
+      } catch (dbErr) {
+        await connection.rollback();
+        connection.release();
+        console.error('Error de base de datos:', dbErr);
+        res.status(500).json({ err: true, errmsg: 'Error actualizando créditos' });
+      }
+      
+    } else {
+      res.status(400).json({ err: true, errmsg: 'Pago no completado' });
+    }
+    
+  } catch (err) {
+    console.error('Error capturando pago:', err);
+    res.status(500).json({ err: true, errmsg: 'Error procesando el pago', details: err.message });
+  }
+});
+
+// Ruta para mostrar la página de retirada
+router.get('/withdraw-credits', verificarSesion, async (req, res) => {
+  try {
+    const username = req.username;
+    console.log('Usuario accediendo a withdraw-credits:', username);
+    
+    if (!username) {
+      console.log('No hay username, redirigiendo a login');
+      return res.redirect('/login');
+    }
+
+    const connection = await global.poolPromise.getConnection();
+    const [userRows] = await connection.execute(
+      'SELECT creditos FROM user WHERE username = ?',
+      [username]
+    );
+    connection.release();
+
+    if (userRows.length === 0) {
+      console.log('Usuario no encontrado en BD:', username);
+      return res.redirect('/login');
+    }
+
+    const userCreditos = parseFloat(userRows[0].creditos) || 0;
+    console.log('Créditos del usuario:', userCreditos);
+
+    res.render('withdraw_credits', {
+      username: username,
+      userCreditos: userCreditos
+    });
+  } catch (err) {
+    console.error('Error al cargar página de retirada:', err);
+    res.status(500).json({ err: true, errmsg: 'Error interno del servidor: ' + err.message });
+  }
+});
+
+router.post('/process-withdrawal', verificarSesion, async (req, res) => {
+  console.log('=== INICIO PROCESS-WITHDRAWAL ===');
+  console.log('Body recibido:', req.body);
+  console.log('Username desde middleware:', req.username);
+  
+  try {
+    const { creditsAmount, paypalEmail } = req.body;
+    const username = req.username;
+    
+    if (!username) {
+      console.log('ERROR: Usuario no autenticado');
+      return res.status(401).json({ err: true, errmsg: 'Usuario no autenticado' });
+    }
+    
+    const creditsNum = parseInt(creditsAmount);
+    console.log('Créditos a retirar:', creditsNum);
+    console.log('Email PayPal:', paypalEmail);
+    
+    // Validaciones
+    if (creditsNum < 1000) {
+      console.log('ERROR: Cantidad mínima no alcanzada');
+      return res.status(400).json({ err: true, errmsg: 'Cantidad mínima: 1000 créditos' });
+    }
+    
+    if (!paypalEmail || !paypalEmail.includes('@')) {
+      console.log('ERROR: Email inválido');
+      return res.status(400).json({ err: true, errmsg: 'Email de PayPal inválido' });
+    }
+    
+    console.log('Obteniendo conexión a BD...');
+    const connection = await global.poolPromise.getConnection();
+    
+    try {
+      console.log('Iniciando transacción...');
+      await connection.beginTransaction();
+      
+      // Verificar créditos actuales del usuario
+      console.log('Verificando créditos del usuario...');
+      const [userRows] = await connection.execute(
+        'SELECT creditos FROM user WHERE username = ?',
+        [username]
+      );
+      
+      if (userRows.length === 0) {
+        console.log('ERROR: Usuario no encontrado en BD');
+        await connection.rollback();
+        connection.release();
+        return res.status(400).json({ err: true, errmsg: 'Usuario no encontrado' });
+      }
+      
+      const currentCredits = parseFloat(userRows[0].creditos) || 0;
+      console.log('Créditos actuales del usuario:', currentCredits);
+      
+      if (currentCredits < creditsNum) {
+        console.log('ERROR: Créditos insuficientes');
+        await connection.rollback();
+        connection.release();
+        return res.status(400).json({ err: true, errmsg: 'Créditos insuficientes' });
+      }
+      
+      // Calcular montos
+      const grossAmount = creditsNum / 100;
+      const feeAmount = (grossAmount * 0.02) + 0.35;
+      const netAmount = grossAmount - feeAmount;
+      
+      console.log('Montos calculados:');
+      console.log('- Bruto:', grossAmount);
+      console.log('- Comisión:', feeAmount);
+      console.log('- Neto:', netAmount);
+      
+      // Restar créditos del usuario
+      console.log('Actualizando créditos del usuario...');
+      const newCredits = currentCredits - creditsNum;
+      await connection.execute(
+        'UPDATE user SET creditos = ? WHERE username = ?',
+        [newCredits, username]
+      );
+      
+      console.log('Créditos actualizados. Nuevos créditos:', newCredits);
+      
+      await connection.commit();
+      connection.release();
+      
+      console.log('=== PROCESO COMPLETADO EXITOSAMENTE ===');
+      
+      // Devolver respuesta exitosa
+      res.json({ 
+        success: true, 
+        message: 'Retirada procesada correctamente',
+        withdrawalAmount: netAmount,
+        remainingCredits: newCredits,
+        grossAmount: grossAmount,
+        feeAmount: feeAmount
+      });
+      
+    } catch (dbErr) {
+      console.error('ERROR DE BASE DE DATOS:', dbErr);
+      await connection.rollback();
+      connection.release();
+      res.status(500).json({ 
+        err: true, 
+        errmsg: 'Error procesando la retirada: ' + dbErr.message 
+      });
+    }
+    
+  } catch (err) {
+    console.error('ERROR GENERAL:', err);
+    res.status(500).json({ 
+      err: true, 
+      errmsg: 'Error interno del servidor: ' + err.message 
+    });
+  }
+});
+
 
 module.exports = router

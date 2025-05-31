@@ -1,0 +1,407 @@
+<%- include('partials/header', { title: 'Gestión de Disputas', username: username }) %>
+
+<div class="dms-main-container">
+    <!-- Background Effects -->
+    <div class="dms-bg-effects">
+        <div class="dms-gradient-orb-1"></div>
+        <div class="dms-gradient-orb-2"></div>
+        <div class="dms-gradient-orb-3"></div>
+    </div>
+    
+    <div class="dms-content-wrapper">
+        <!-- Header Navigation -->
+        <div class="dms-top-navigation">
+            <div class="dms-nav-content">
+                <h1 class="dms-page-title">GESTIÓN DE DISPUTAS</h1>
+                <a href="/admin" class="dms-back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Volver al Panel Admin</span>
+                </a>
+            </div>
+        </div>
+        
+        <!-- Success Alert -->
+        <% if (typeof message !== 'undefined' && message) { %>
+            <div class="dms-alert dms-alert-success">
+                <div class="dms-alert-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="dms-alert-content">
+                    <% if (message === 'dispute-resolved') { %>
+                        <strong>¡Éxito!</strong> Disputa resuelta correctamente.
+                    <% } else { %>
+                        <%= message %>
+                    <% } %>
+                </div>
+            </div>
+        <% } %>
+        
+        <!-- Error Alert -->
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="dms-alert dms-alert-error">
+                <div class="dms-alert-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="dms-alert-content">
+                    <% if (error === 'match-not-found') { %>
+                        <strong>Error:</strong> Partida no encontrada.
+                    <% } else if (error === 'server-error') { %>
+                        <strong>Error:</strong> Error del servidor. Inténtalo de nuevo más tarde.
+                    <% } else { %>
+                        <strong>Error:</strong> <%= error %>
+                    <% } %>
+                </div>
+            </div>
+        <% } %>
+        
+        <!-- Disputes Container -->
+        <div class="dms-disputes-container">
+            <% if (disputes && disputes.length > 0) { %>
+                <% disputes.forEach((dispute, index) => { %>
+                    <div class="dms-dispute-card">
+                        <!-- Dispute Header -->
+                        <div class="dms-dispute-header">
+                            <div class="dms-dispute-title-section">
+                                <div class="dms-dispute-badge">
+                                    <i class="fas fa-gavel"></i>
+                                    <span>Disputa #<%= index + 1 %></span>
+                                </div>
+                                <h3 class="dms-dispute-title">Partida #<%= dispute.id_game %></h3>
+                            </div>
+                            
+                            <div class="dms-dispute-meta">
+                                <div class="dms-meta-item">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <span>Fecha: <%= new Date(dispute.created_at).toLocaleString() %></span>
+                                </div>
+                                <div class="dms-meta-item dms-credits-highlight">
+                                    <i class="fas fa-coins"></i>
+                                    <span>Créditos: <%= dispute.creditos %></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Players Battle Section -->
+                        <div class="dms-players-battle">
+                            <!-- Blue Player -->
+                            <div class="dms-player-card dms-blue-player">
+                                <div class="dms-player-header">
+                                    <div class="dms-player-avatar dms-blue-avatar">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="dms-player-info">
+                                        <h4 class="dms-player-name"><%= dispute.blue_username %></h4>
+                                        <span class="dms-player-team">Equipo Azul</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="dms-player-report">
+                                    <div class="dms-report-label">
+                                        <i class="fas fa-flag"></i>
+                                        Ganador reportado:
+                                    </div>
+                                    <div class="dms-report-value">
+                                        <% if (dispute.blue_reported_winner === dispute.blue_id) { %>
+                                            <span class="dms-self-report">Él mismo</span>
+                                        <% } else if (dispute.blue_reported_winner === dispute.red_id) { %>
+                                            <span class="dms-opponent-report"><%= dispute.red_username %></span>
+                                        <% } else { %>
+                                            <span class="dms-no-report">No reportado</span>
+                                        <% } %>
+                                    </div>
+                                </div>
+                                
+                                <!-- Blue Player Proofs -->
+                                <% if (dispute.blue_proof_images) { %>
+                                    <div class="dms-proof-section">
+                                        <div class="dms-proof-header">
+                                            <i class="fas fa-camera"></i>
+                                            <span>Pruebas aportadas</span>
+                                        </div>
+                                        <% 
+                                            let blueImages = [];
+                                            try {
+                                                blueImages = JSON.parse(dispute.blue_proof_images);
+                                            } catch(e) {
+                                                blueImages = [];
+                                            }
+                                        %>
+                                        <% if (blueImages.length > 0) { %>
+                                            <div class="dms-proof-gallery">
+                                                <% blueImages.forEach((imagePath, imgIndex) => { %>
+                                                    <div class="dms-proof-item" onclick="dmsOpenImageModal('<%= imagePath %>')">
+                                                        <img src="<%= imagePath %>" alt="Prueba <%= imgIndex + 1 %>" class="dms-proof-image">
+                                                        <div class="dms-proof-overlay">
+                                                            <i class="fas fa-search-plus"></i>
+                                                        </div>
+                                                    </div>
+                                                <% }); %>
+                                            </div>
+                                        <% } else { %>
+                                            <div class="dms-no-proof">
+                                                <i class="fas fa-image-slash"></i>
+                                                <span>No se aportaron pruebas</span>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                <% } %>
+                            </div>
+                            
+                            <!-- VS Divider -->
+                            <div class="dms-vs-divider">
+                                <div class="dms-vs-circle">
+                                    <span class="dms-vs-text">VS</span>
+                                </div>
+                                <div class="dms-vs-line"></div>
+                            </div>
+                            
+                            <!-- Red Player -->
+                            <div class="dms-player-card dms-red-player">
+                                <div class="dms-player-header">
+                                    <div class="dms-player-avatar dms-red-avatar">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="dms-player-info">
+                                        <h4 class="dms-player-name"><%= dispute.red_username %></h4>
+                                        <span class="dms-player-team">Equipo Rojo</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="dms-player-report">
+                                    <div class="dms-report-label">
+                                        <i class="fas fa-flag"></i>
+                                        Ganador reportado:
+                                    </div>
+                                    <div class="dms-report-value">
+                                        <% if (dispute.red_reported_winner === dispute.red_id) { %>
+                                            <span class="dms-self-report">Él mismo</span>
+                                        <% } else if (dispute.red_reported_winner === dispute.blue_id) { %>
+                                            <span class="dms-opponent-report"><%= dispute.blue_username %></span>
+                                        <% } else { %>
+                                            <span class="dms-no-report">No reportado</span>
+                                        <% } %>
+                                    </div>
+                                </div>
+                                
+                                <!-- Red Player Proofs -->
+                                <% if (dispute.red_proof_images) { %>
+                                    <div class="dms-proof-section">
+                                        <div class="dms-proof-header">
+                                            <i class="fas fa-camera"></i>
+                                            <span>Pruebas aportadas</span>
+                                        </div>
+                                        <% 
+                                            let redImages = [];
+                                            try {
+                                                redImages = JSON.parse(dispute.red_proof_images);
+                                            } catch(e) {
+                                                redImages = [];
+                                            }
+                                        %>
+                                        <% if (redImages.length > 0) { %>
+                                            <div class="dms-proof-gallery">
+                                                <% redImages.forEach((imagePath, imgIndex) => { %>
+                                                    <div class="dms-proof-item" onclick="dmsOpenImageModal('<%= imagePath %>')">
+                                                        <img src="<%= imagePath %>" alt="Prueba <%= imgIndex + 1 %>" class="dms-proof-image">
+                                                        <div class="dms-proof-overlay">
+                                                            <i class="fas fa-search-plus"></i>
+                                                        </div>
+                                                    </div>
+                                                <% }); %>
+                                            </div>
+                                        <% } else { %>
+                                            <div class="dms-no-proof">
+                                                <i class="fas fa-image-slash"></i>
+                                                <span>No se aportaron pruebas</span>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                <% } %>
+                            </div>
+                        </div>
+                        
+                        <!-- Resolution Section -->
+                        <div class="dms-resolution-section">
+                            <div class="dms-resolution-header">
+                                <div class="dms-resolution-icon">
+                                    <i class="fas fa-balance-scale"></i>
+                                </div>
+                                <div class="dms-resolution-title">
+                                    <h4>Resolver Disputa</h4>
+                                    <p>Selecciona la resolución apropiada para esta disputa</p>
+                                </div>
+                            </div>
+                            
+                            <form action="/admin/resolve-dispute" method="POST" class="dms-resolution-form" id="dmsResolutionForm<%= dispute.id_game %>">
+                                <input type="hidden" name="match_id" value="<%= dispute.id_game %>">
+                                
+                                <div class="dms-resolution-options">
+                                    <div class="dms-option-card">
+                                        <input type="radio" id="dmsWinnerBlue<%= dispute.id_game %>" name="resolution" value="declare_winner" 
+                                               onchange="dmsShowWinnerSelect(<%= dispute.id_game %>, '<%= dispute.blue_id %>')">
+                                        <label for="dmsWinnerBlue<%= dispute.id_game %>" class="dms-option-label dms-blue-option">
+                                            <div class="dms-option-icon">
+                                                <i class="fas fa-trophy"></i>
+                                            </div>
+                                            <div class="dms-option-content">
+                                                <span class="dms-option-title">Declarar ganador a <%= dispute.blue_username %></span>
+                                                <span class="dms-option-desc">El jugador azul gana la partida</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="dms-option-card">
+                                        <input type="radio" id="dmsWinnerRed<%= dispute.id_game %>" name="resolution" value="declare_winner" 
+                                               onchange="dmsShowWinnerSelect(<%= dispute.id_game %>, '<%= dispute.red_id %>')">
+                                        <label for="dmsWinnerRed<%= dispute.id_game %>" class="dms-option-label dms-red-option">
+                                            <div class="dms-option-icon">
+                                                <i class="fas fa-trophy"></i>
+                                            </div>
+                                            <div class="dms-option-content">
+                                                <span class="dms-option-title">Declarar ganador a <%= dispute.red_username %></span>
+                                                <span class="dms-option-desc">El jugador rojo gana la partida</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    
+                                    <div class="dms-option-card">
+                                        <input type="radio" id="dmsNoWinner<%= dispute.id_game %>" name="resolution" value="no_winner" 
+                                               onchange="dmsHideWinnerSelect(<%= dispute.id_game %>)">
+                                        <label for="dmsNoWinner<%= dispute.id_game %>" class="dms-option-label dms-neutral-option">
+                                            <div class="dms-option-icon">
+                                                <i class="fas fa-handshake"></i>
+                                            </div>
+                                            <div class="dms-option-content">
+                                                <span class="dms-option-title">Sin ganador</span>
+                                                <span class="dms-option-desc">Devolver créditos a ambos jugadores</span>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <input type="hidden" id="dmsWinnerId<%= dispute.id_game %>" name="winner_id" value="">
+                                
+                                <div class="dms-form-actions">
+                                    <button type="submit" class="dms-btn dms-btn-primary">
+                                        <i class="fas fa-gavel"></i>
+                                        <span>Resolver Disputa</span>
+                                        <div class="dms-btn-loading">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                        </div>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                <% }); %>
+            <% } else { %>
+                <div class="dms-empty-state">
+                    <div class="dms-empty-icon">
+                        <i class="fas fa-peace"></i>
+                    </div>
+                    <h3>No hay disputas pendientes</h3>
+                    <p>¡Excelente! Todas las disputas han sido resueltas o no hay partidas en conflicto.</p>
+                    <a href="/admin" class="dms-btn dms-btn-outline">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Volver al Panel Admin</span>
+                    </a>
+                </div>
+            <% } %>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div id="dmsImageModal" class="dms-modal">
+    <div class="dms-modal-overlay" onclick="dmsCloseImageModal()"></div>
+    <div class="dms-modal-container">
+        <div class="dms-modal-header">
+            <h3 class="dms-modal-title">Prueba de la Disputa</h3>
+            <button class="dms-modal-close" onclick="dmsCloseImageModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="dms-modal-body">
+            <img id="dmsModalImage" src="/placeholder.svg" alt="Prueba ampliada" class="dms-modal-image">
+        </div>
+    </div>
+</div>
+
+<script>
+// Global functions for dispute management
+function dmsShowWinnerSelect(matchId, winnerId) {
+    document.getElementById('dmsWinnerId' + matchId).value = winnerId;
+}
+
+function dmsHideWinnerSelect(matchId) {
+    document.getElementById('dmsWinnerId' + matchId).value = '';
+}
+
+function dmsOpenImageModal(imagePath) {
+    const modal = document.getElementById('dmsImageModal');
+    const modalImg = document.getElementById('dmsModalImage');
+    modal.style.display = 'block';
+    modalImg.src = imagePath;
+    document.body.style.overflow = 'hidden';
+}
+
+function dmsCloseImageModal() {
+    const modal = document.getElementById('dmsImageModal');
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Form submission with loading states
+    const forms = document.querySelectorAll('.dms-resolution-form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const selectedOption = this.querySelector('input[name="resolution"]:checked');
+            
+            if (!selectedOption) {
+                e.preventDefault();
+                alert('Por favor, selecciona una opción de resolución.');
+                return;
+            }
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.classList.add('dms-loading');
+            submitBtn.disabled = true;
+        });
+    });
+    
+    // Animate dispute cards on load
+    const disputeCards = document.querySelectorAll('.dms-dispute-card');
+    disputeCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 200 + 300);
+    });
+    
+    // Close modal on escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            dmsCloseImageModal();
+        }
+    });
+    
+    // Auto-hide alerts after 5 seconds
+    const alerts = document.querySelectorAll('.dms-alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateY(-10px)';
+            setTimeout(() => {
+                alert.remove();
+            }, 300);
+        }, 5000);
+    });
+});
+</script>
+
+<%- include('partials/footer') %>

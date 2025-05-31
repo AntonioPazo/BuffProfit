@@ -1,72 +1,403 @@
 <%- include('partials/header', { title: 'Authentication', username: username }) %>
 
-<div class="auth-container">
-    <div class="auth-tabs">
-        <div class="auth-tab active" role="button" tabindex="0" onclick="switchTab('login')" onkeydown="handleKeyPress(event, 'login')">Login</div>
-        <div class="auth-tab" role="button" tabindex="0" onclick="switchTab('register')" onkeydown="handleKeyPress(event, 'register')">Register</div>
-    </div>
-    
-    <form id="loginForm" class="form active">
-        <div class="form-group">
-            <label for="loginUsername">Username</label>
-            <input type="text" id="loginUsername" required>
+<div class="lnr-auth-container">
+    <div class="lnr-auth-wrapper">
+        <!-- Background Effects -->
+        <div class="lnr-auth-bg-effects">
+            <div class="lnr-auth-gradient-1"></div>
+            <div class="lnr-auth-gradient-2"></div>
+            <div class="lnr-auth-gradient-3"></div>
         </div>
-        <div class="form-group">
-            <label for="loginPassword">Password</label>
-            <input type="password" id="loginPassword" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Sign In</button>
-        <div class="auth-footer">
-            <a href="#">Forgot password?</a>
-        </div>
-    </form>
+        
+        <!-- Auth Card -->
+        <div class="lnr-auth-card">
+            <!-- Header -->
+            <div class="lnr-auth-header">
+                <div class="lnr-auth-logo">
+                    <img src="/images/BuffProfit.png" alt="Buff Profit" class="lnr-auth-logo-icon">
+                    <span class="lnr-auth-logo-text">Buff Profit</span>
+                </div>
+                <h1 class="lnr-auth-title">Welcome Back</h1>
+                <p class="lnr-auth-subtitle">Join the ultimate gaming community</p>
+            </div>
+            
+            <!-- Tabs -->
+            <div class="lnr-auth-tabs">
+                <div class="lnr-auth-tab active" role="button" tabindex="0" onclick="switchTab('login')" onkeydown="handleKeyPress(event, 'login')">
+                    <i class="fas fa-sign-in-alt"></i>
+                    <span>Login</span>
+                </div>
+                <div class="lnr-auth-tab" role="button" tabindex="0" onclick="switchTab('register')" onkeydown="handleKeyPress(event, 'register')">
+                    <i class="fas fa-user-plus"></i>
+                    <span>Register</span>
+                </div>
+                <div class="lnr-tab-indicator"></div>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="loginForm" class="lnr-form active">
+                <div class="lnr-form-group">
+                    <label for="loginUsername" class="lnr-form-label">
+                        <i class="fas fa-user"></i>
+                        Username
+                    </label>
+                    <div class="lnr-input-wrapper">
+                        <input type="text" id="loginUsername" class="lnr-form-input" placeholder="Enter your username" required>
+                        <div class="lnr-input-focus"></div>
+                    </div>
+                </div>
+                
+                <div class="lnr-form-group">
+                    <label for="loginPassword" class="lnr-form-label">
+                        <i class="fas fa-lock"></i>
+                        Password
+                    </label>
+                    <div class="lnr-input-wrapper">
+                        <input type="password" id="loginPassword" class="lnr-form-input" placeholder="Enter your password" required>
+                        <button type="button" class="lnr-password-toggle" onclick="togglePassword('loginPassword')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <div class="lnr-input-focus"></div>
+                    </div>
+                </div>
+                
+                <div class="lnr-form-options">
+                    <label class="lnr-checkbox-wrapper">
+                        <input type="checkbox" id="rememberMe">
+                        <span class="lnr-checkbox-custom"></span>
+                        <span class="lnr-checkbox-label">Remember me</span>
+                    </label>
+                    <a href="#" class="lnr-forgot-link">Forgot password?</a>
+                </div>
+                
+                <button type="submit" class="lnr-btn lnr-btn-primary lnr-btn-full">
+                    <span class="lnr-btn-text">Sign In</span>
+                    <i class="fas fa-arrow-right lnr-btn-icon"></i>
+                    <div class="lnr-btn-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                </button>
+                
+                <div class="lnr-auth-divider">
+                    <span>or continue with</span>
+                </div>
+                
+                <div class="lnr-social-login">
+                    <button type="button" class="lnr-social-btn lnr-social-google">
+                        <i class="fab fa-google"></i>
+                        <span>Google</span>
+                    </button>
+                    <button type="button" class="lnr-social-btn lnr-social-discord">
+                        <i class="fab fa-discord"></i>
+                        <span>Discord</span>
+                    </button>
+                </div>
+            </form>
 
-    <form id="registerForm" class="form">
-        <div class="form-group">
-            <label for="registerUsername">Username</label>
-            <input type="text" id="registerUsername" required>
+            <!-- Register Form -->
+            <form id="registerForm" class="lnr-form">
+                <div class="lnr-form-row">
+                    <div class="lnr-form-group">
+                        <label for="registerUsername" class="lnr-form-label">
+                            <i class="fas fa-user"></i>
+                            Username
+                        </label>
+                        <div class="lnr-input-wrapper">
+                            <input type="text" id="registerUsername" class="lnr-form-input" placeholder="Choose username" required>
+                            <div class="lnr-input-focus"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="lnr-form-group">
+                        <label for="registerEmail" class="lnr-form-label">
+                            <i class="fas fa-envelope"></i>
+                            Email
+                        </label>
+                        <div class="lnr-input-wrapper">
+                            <input type="email" id="registerEmail" class="lnr-form-input" placeholder="Enter your email" required>
+                            <div class="lnr-input-focus"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="lnr-form-row">
+                    <div class="lnr-form-group">
+                        <label for="registerSummoner" class="lnr-form-label">
+                            <i class="fas fa-gamepad"></i>
+                            Summoner Name
+                        </label>
+                        <div class="lnr-input-wrapper">
+                            <input type="text" id="registerSummoner" class="lnr-form-input" placeholder="Your LoL summoner name" required>
+                            <div class="lnr-input-focus"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="lnr-form-group">
+                        <label for="registerIdSummoner" class="lnr-form-label">
+                            <i class="fas fa-hashtag"></i>
+                            LoL ID
+                        </label>
+                        <div class="lnr-input-wrapper">
+                            <input type="text" id="registerIdSummoner" class="lnr-form-input" placeholder="Your Riot ID" required>
+                            <div class="lnr-input-focus"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="lnr-form-row">
+                    <div class="lnr-form-group">
+                        <label for="registerPassword" class="lnr-form-label">
+                            <i class="fas fa-lock"></i>
+                            Password
+                        </label>
+                        <div class="lnr-input-wrapper">
+                            <input type="password" id="registerPassword" class="lnr-form-input" placeholder="Create password" required>
+                            <button type="button" class="lnr-password-toggle" onclick="togglePassword('registerPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <div class="lnr-input-focus"></div>
+                        </div>
+                        <div class="lnr-password-strength">
+                            <div class="lnr-strength-bar">
+                                <div class="lnr-strength-fill"></div>
+                            </div>
+                            <span class="lnr-strength-text">Password strength</span>
+                        </div>
+                    </div>
+                    
+                    <div class="lnr-form-group">
+                        <label for="confirmPassword" class="lnr-form-label">
+                            <i class="fas fa-lock"></i>
+                            Confirm Password
+                        </label>
+                        <div class="lnr-input-wrapper">
+                            <input type="password" id="confirmPassword" class="lnr-form-input" placeholder="Confirm password" required>
+                            <button type="button" class="lnr-password-toggle" onclick="togglePassword('confirmPassword')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <div class="lnr-input-focus"></div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="lnr-form-terms">
+                    <label class="lnr-checkbox-wrapper">
+                        <input type="checkbox" id="agreeTerms" required>
+                        <span class="lnr-checkbox-custom"></span>
+                        <span class="lnr-checkbox-label">
+                            I agree to the <a href="#" class="lnr-terms-link">Terms of Service</a> and <a href="#" class="lnr-terms-link">Privacy Policy</a>
+                        </span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="lnr-btn lnr-btn-primary lnr-btn-full">
+                    <span class="lnr-btn-text">Create Account</span>
+                    <i class="fas fa-user-plus lnr-btn-icon"></i>
+                    <div class="lnr-btn-loading">
+                        <i class="fas fa-spinner fa-spin"></i>
+                    </div>
+                </button>
+                
+                <div class="lnr-auth-divider">
+                    <span>or continue with</span>
+                </div>
+                
+                <div class="lnr-social-login">
+                    <button type="button" class="lnr-social-btn lnr-social-google">
+                        <i class="fab fa-google"></i>
+                        <span>Google</span>
+                    </button>
+                    <button type="button" class="lnr-social-btn lnr-social-discord">
+                        <i class="fab fa-discord"></i>
+                        <span>Discord</span>
+                    </button>
+                </div>
+            </form>
         </div>
-        <div class="form-group">
-            <label for="registerSummoner">Summoner Name</label>
-            <input type="text" id="registerSummoner" required>
+        
+        <!-- Features -->
+        <div class="lnr-auth-features">
+            <div class="lnr-feature-item">
+                <div class="lnr-feature-icon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="lnr-feature-content">
+                    <h3>Compete & Win</h3>
+                    <p>Join tournaments and win real prizes</p>
+                </div>
+            </div>
+            
+            <div class="lnr-feature-item">
+                <div class="lnr-feature-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="lnr-feature-content">
+                    <h3>Build Teams</h3>
+                    <p>Create and manage your gaming teams</p>
+                </div>
+            </div>
+            
+            <div class="lnr-feature-item">
+                <div class="lnr-feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="lnr-feature-content">
+                    <h3>Track Progress</h3>
+                    <p>Monitor your gaming statistics</p>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="registerIdSummoner">LoL ID</label>
-            <input type="text" id="registerIdSummoner" required>
-        </div>
-        <div class="form-group">
-            <label for="registerEmail">Email</label>
-            <input type="email" id="registerEmail" required>
-        </div>
-        <div class="form-group">
-            <label for="registerPassword">Password</label>
-            <input type="password" id="registerPassword" required>
-        </div>
-        <div class="form-group">
-            <label for="confirmPassword">Confirm Password</label>
-            <input type="password" id="confirmPassword" required>
-        </div>
-        <button type="submit" class="btn btn-primary">Create Account</button>
-    </form>
+    </div>
 </div>
 
-<%- include('partials/footer') %>
-<!-- Cargar auth.js directamente desde la carpeta public -->
-<script src="/auth.js"></script>
 <script>
-    function switchTab(tab) {
-        document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+document.addEventListener('DOMContentLoaded', function() {
+    // Tab switching functionality
+    window.switchTab = function(tab) {
+        const tabs = document.querySelectorAll('.lnr-auth-tab');
+        const forms = document.querySelectorAll('.lnr-form');
+        const tabsContainer = document.querySelector('.lnr-auth-tabs');
+        
+        // Update tabs
+        tabs.forEach(t => t.classList.remove('active'));
         if (tab === 'login') {
-            document.querySelector('.auth-tab:nth-child(1)').classList.add('active');
+            tabs[0].classList.add('active');
+            tabsContainer.setAttribute('data-active', 'login');
         } else {
-            document.querySelector('.auth-tab:nth-child(2)').classList.add('active');
+            tabs[1].classList.add('active');
+            tabsContainer.setAttribute('data-active', 'register');
         }
-        document.querySelectorAll('.form').forEach(f => f.classList.remove('active'));
+        
+        // Update forms
+        forms.forEach(f => f.classList.remove('active'));
         document.getElementById(`${tab}Form`).classList.add('active');
-    }
-    function handleKeyPress(event, tab) {
+        
+        // Update header text
+        const title = document.querySelector('.lnr-auth-title');
+        const subtitle = document.querySelector('.lnr-auth-subtitle');
+        
+        if (tab === 'login') {
+            title.textContent = 'Welcome Back';
+            subtitle.textContent = 'Sign in to your gaming account';
+        } else {
+            title.textContent = 'Join the Community';
+            subtitle.textContent = 'Create your gaming profile today';
+        }
+    };
+    
+    // Keyboard navigation
+    window.handleKeyPress = function(event, tab) {
         if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
             switchTab(tab);
         }
+    };
+    
+    // Password toggle functionality
+    window.togglePassword = function(inputId) {
+        const input = document.getElementById(inputId);
+        const button = input.nextElementSibling;
+        const icon = button.querySelector('i');
+        
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    };
+    
+    // Password strength checker
+    const passwordInput = document.getElementById('registerPassword');
+    const strengthBar = document.querySelector('.lnr-strength-fill');
+    const strengthText = document.querySelector('.lnr-strength-text');
+    
+    if (passwordInput && strengthBar) {
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            let strength = 0;
+            let strengthLabel = 'Weak';
+            
+            // Check password criteria
+            if (password.length >= 8) strength += 25;
+            if (/[a-z]/.test(password)) strength += 25;
+            if (/[A-Z]/.test(password)) strength += 25;
+            if (/[0-9]/.test(password) || /[^A-Za-z0-9]/.test(password)) strength += 25;
+            
+            // Update strength indicator
+            strengthBar.style.width = strength + '%';
+            
+            if (strength >= 75) strengthLabel = 'Strong';
+            else if (strength >= 50) strengthLabel = 'Medium';
+            else if (strength >= 25) strengthLabel = 'Fair';
+            
+            strengthText.textContent = `Password strength: ${strengthLabel}`;
+        });
     }
+    
+    // Form submission with loading states
+    const forms = document.querySelectorAll('.lnr-form');
+    forms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.classList.add('loading');
+            
+            // Simulate API call
+            setTimeout(() => {
+                submitBtn.classList.remove('loading');
+                
+                // Add your form submission logic here
+                if (this.id === 'loginForm') {
+                    console.log('Login form submitted');
+                    // Handle login
+                } else {
+                    console.log('Register form submitted');
+                    // Handle registration
+                }
+            }, 2000);
+        });
+    });
+    
+    // Input focus animations
+    const inputs = document.querySelectorAll('.lnr-form-input');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.classList.add('focused');
+        });
+        
+        input.addEventListener('blur', function() {
+            this.parentElement.classList.remove('focused');
+        });
+    });
+    
+    // Social login buttons
+    const socialBtns = document.querySelectorAll('.lnr-social-btn');
+    socialBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const provider = this.classList.contains('lnr-social-google') ? 'Google' : 'Discord';
+            console.log(`${provider} login clicked`);
+            // Add social login logic here
+        });
+    });
+    
+    // Feature items animation
+    const featureItems = document.querySelectorAll('.lnr-feature-item');
+    featureItems.forEach((item, index) => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateX(-20px)';
+        
+        setTimeout(() => {
+            item.style.transition = 'all 0.6s ease';
+            item.style.opacity = '1';
+            item.style.transform = 'translateX(0)';
+        }, index * 200 + 500);
+    });
+});
 </script>
+
+<%- include('partials/footer') %>

@@ -50,6 +50,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (registerForm) {
     console.log("Formulario de registro encontrado")
+    console.log("⏳ Añadiendo eventListener al formulario de registro")
+
     registerForm.addEventListener("submit", async (event) => {
       event.preventDefault()
       console.log("Formulario de registro enviado")
@@ -67,6 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
+        console.log("Datos que llegan",username, summoner, idSummoner, email, password);
         const resHttp = await fetch("/procesar_registro", {
           method: "POST",
           headers: {

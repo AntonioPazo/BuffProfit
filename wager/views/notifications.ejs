@@ -1,52 +1,167 @@
 <%- include('partials/header', { title: 'Notificaciones', username: username }) %>
 
-<div class="main-content">
-    <div class="sidebar">
-        <div class="sidebar-section">
-            <h3 class="sidebar-title">NOTIFICACIONES</h3>
-            <div class="notification-filters">
-                <button class="filter-btn active" data-filter="all">Todas</button>
-                <button class="filter-btn" data-filter="unread">No leídas</button>
-                <button class="filter-btn" data-filter="team_invitation">Invitaciones</button>
-                <button class="filter-btn" data-filter="tournament">Torneos</button>
-                <button class="filter-btn" data-filter="match">Partidas</button>
+<div class="ntf-notifications-container">
+    <div class="ntf-notifications-sidebar">
+        <!-- Sección de Filtros -->
+        <div class="ntf-sidebar-section">
+            <h3 class="ntf-sidebar-title">FILTROS</h3>
+            <div class="ntf-notification-filters">
+                <button class="ntf-filter-btn active" data-filter="all">
+                    <div class="ntf-filter-icon">
+                        <i class="fas fa-list"></i>
+                    </div>
+                    <div class="ntf-filter-info">
+                        <span class="ntf-filter-label">Todas</span>
+                        <span class="ntf-filter-count" id="count-all">0</span>
+                    </div>
+                </button>
+                <button class="ntf-filter-btn" data-filter="unread">
+                    <div class="ntf-filter-icon">
+                        <i class="fas fa-envelope"></i>
+                    </div>
+                    <div class="ntf-filter-info">
+                        <span class="ntf-filter-label">No leídas</span>
+                        <span class="ntf-filter-count" id="count-unread">0</span>
+                    </div>
+                </button>
+                <button class="ntf-filter-btn" data-filter="team_invitation">
+                    <div class="ntf-filter-icon">
+                        <i class="fas fa-user-plus"></i>
+                    </div>
+                    <div class="ntf-filter-info">
+                        <span class="ntf-filter-label">Invitaciones</span>
+                        <span class="ntf-filter-count" id="count-team_invitation">0</span>
+                    </div>
+                </button>
+                <button class="ntf-filter-btn" data-filter="tournament">
+                    <div class="ntf-filter-icon">
+                        <i class="fas fa-trophy"></i>
+                    </div>
+                    <div class="ntf-filter-info">
+                        <span class="ntf-filter-label">Torneos</span>
+                        <span class="ntf-filter-count" id="count-tournament">0</span>
+                    </div>
+                </button>
+                <button class="ntf-filter-btn" data-filter="match">
+                    <div class="ntf-filter-icon">
+                        <i class="fas fa-gamepad"></i>
+                    </div>
+                    <div class="ntf-filter-info">
+                        <span class="ntf-filter-label">Partidas</span>
+                        <span class="ntf-filter-count" id="count-match">0</span>
+                    </div>
+                </button>
             </div>
         </div>
         
-        <div class="sidebar-section">
-            <h3 class="sidebar-title">ACCIONES</h3>
-            <div class="notification-actions">
-                <button id="markAllReadBtn" class="action-btn">Marcar todas como leídas</button>
-                <button id="deleteAllBtn" class="action-btn danger">Eliminar todas</button>
+        <!-- Sección de Acciones -->
+        <div class="ntf-sidebar-section">
+            <h3 class="ntf-sidebar-title">ACCIONES RÁPIDAS</h3>
+            <div class="ntf-notification-actions">
+                <button id="markAllReadBtn" class="ntf-action-btn ntf-action-primary">
+                    <div class="ntf-action-icon">
+                        <i class="fas fa-check-double"></i>
+                    </div>
+                    <div class="ntf-action-text">
+                        <span class="ntf-action-label">Marcar todas</span>
+                        <span class="ntf-action-subtitle">como leídas</span>
+                    </div>
+                </button>
+                <button id="deleteAllBtn" class="ntf-action-btn ntf-action-danger">
+                    <div class="ntf-action-icon">
+                        <i class="fas fa-trash-alt"></i>
+                    </div>
+                    <div class="ntf-action-text">
+                        <span class="ntf-action-label">Eliminar todas</span>
+                        <span class="ntf-action-subtitle">las notificaciones</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Estadísticas -->
+        <div class="ntf-sidebar-section">
+            <h3 class="ntf-sidebar-title">ESTADÍSTICAS</h3>
+            <div class="ntf-notification-stats">
+                <div class="ntf-stat-item">
+                    <div class="ntf-stat-icon">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="ntf-stat-info">
+                        <span class="ntf-stat-number" id="total-notifications">0</span>
+                        <span class="ntf-stat-label">Total</span>
+                    </div>
+                </div>
+                <div class="ntf-stat-item">
+                    <div class="ntf-stat-icon">
+                        <i class="fas fa-envelope-open"></i>
+                    </div>
+                    <div class="ntf-stat-info">
+                        <span class="ntf-stat-number" id="unread-notifications">0</span>
+                        <span class="ntf-stat-label">Sin leer</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
     
-    <div class="content">
+    <div class="ntf-notifications-content">
+        <!-- Alertas -->
         <% if (typeof message !== 'undefined' && message) { %>
-            <div class="alert alert-success">
-                <%= message %>
+            <div class="ntf-alert ntf-alert-success">
+                <i class="fas fa-check-circle"></i>
+                <span><%= message %></span>
             </div>
         <% } %>
         
         <% if (typeof error !== 'undefined' && error) { %>
-            <div class="alert alert-error">
-                <%= error %>
+            <div class="ntf-alert ntf-alert-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span><%= error %></span>
             </div>
         <% } %>
         
-        <div class="top-bar">
-            <h2 class="page-title">MIS NOTIFICACIONES</h2>
-            <div class="view-options">
-                <a href="/dashboard" class="nav-link">← Volver al Dashboard</a>
+        <!-- Header -->
+        <div class="ntf-content-header">
+            <div class="ntf-header-content">
+                <div class="ntf-breadcrumb">
+                    <a href="/matchfinder" class="ntf-breadcrumb-link">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Volver al Dashboard</span>
+                    </a>
+                </div>
+                <h1 class="ntf-page-title">MIS NOTIFICACIONES</h1>
+                <p class="ntf-page-subtitle">Mantente al día con todas tus actividades</p>
+            </div>
+            <div class="ntf-header-actions">
+                <div class="ntf-notification-summary">
+                    <div class="ntf-summary-item">
+                        <span class="ntf-summary-number" id="header-total">0</span>
+                        <span class="ntf-summary-label">Total</span>
+                    </div>
+                    <div class="ntf-summary-separator"></div>
+                    <div class="ntf-summary-item">
+                        <span class="ntf-summary-number ntf-unread" id="header-unread">0</span>
+                        <span class="ntf-summary-label">Sin leer</span>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <div class="notifications-container">
+        <!-- Notifications Container -->
+        <div class="ntf-notifications-list">
             <% if (notifications && notifications.length > 0) { %>
-                <% notifications.forEach(notification => { %>
-                    <div class="notification-card <%= !notification.is_read ? 'unread' : '' %>" data-type="<%= notification.type %>">
-                        <div class="notification-icon">
+                <% notifications.forEach((notification, index) => { %>
+                    <div class="ntf-notification-card <%= !notification.is_read ? 'unread' : '' %>" 
+                         data-type="<%= notification.type %>" 
+                         data-notification-id="<%= notification.id_notification %>">
+                        <div class="ntf-notification-status">
+                            <% if (!notification.is_read) { %>
+                                <div class="ntf-unread-indicator"></div>
+                            <% } %>
+                        </div>
+                        
+                        <div class="ntf-notification-icon">
                             <% if (notification.type === 'team_invitation') { %>
                                 <i class="fas fa-user-plus"></i>
                             <% } else if (notification.type.includes('tournament')) { %>
@@ -57,291 +172,268 @@
                                 <i class="fas fa-bell"></i>
                             <% } %>
                         </div>
-                        <div class="notification-content">
-                            <div class="notification-message"><%= notification.message %></div>
-                            <div class="notification-date"><%= new Date(notification.created_at).toLocaleString() %></div>
+                        
+                        <div class="ntf-notification-content">
+                            <div class="ntf-notification-message">
+                                <%= notification.message %>
+                            </div>
+                            <div class="ntf-notification-meta">
+                                <div class="ntf-notification-date">
+                                    <i class="fas fa-clock"></i>
+                                    <span><%= new Date(notification.created_at).toLocaleString() %></span>
+                                </div>
+                                <div class="ntf-notification-type">
+                                    <% if (notification.type === 'team_invitation') { %>
+                                        <span class="ntf-type-badge ntf-type-invitation">Invitación</span>
+                                    <% } else if (notification.type.includes('tournament')) { %>
+                                        <span class="ntf-type-badge ntf-type-tournament">Torneo</span>
+                                    <% } else if (notification.type.includes('match')) { %>
+                                        <span class="ntf-type-badge ntf-type-match">Partida</span>
+                                    <% } else { %>
+                                        <span class="ntf-type-badge ntf-type-general">General</span>
+                                    <% } %>
+                                </div>
+                            </div>
                         </div>
-                        <div class="notification-actions">
-                            <% if (notification.type === 'team_invitation' && notification.status === 'pending') { %>
-                                <form action="/accept-invitation" method="POST" class="inline-form">
-                                    <input type="hidden" name="invitation_id" value="<%= notification.related_id %>">
-                                    <button type="submit" class="btn-small btn-accept">Aceptar</button>
-                                </form>
-                                <form action="/reject-invitation" method="POST" class="inline-form">
-                                    <input type="hidden" name="invitation_id" value="<%= notification.related_id %>">
-                                    <button type="submit" class="btn-small btn-reject">Rechazar</button>
-                                </form>
+                        
+                        <div class="ntf-notification-actions">
+                            <% if (notification.type === 'team_invitation') { %>
+                                <div class="ntf-invitation-actions">
+                                    <form action="/accept-invitation" method="POST" class="ntf-inline-form">
+                                        <input type="hidden" name="invitation_id" value="<%= notification.related_id %>">
+                                        <button type="submit" class="ntf-btn-small ntf-btn-accept">
+                                            <i class="fas fa-check"></i>
+                                            <span>Aceptar</span>
+                                        </button>
+                                    </form>
+                                    <form action="/reject-invitation" method="POST" class="ntf-inline-form">
+                                        <input type="hidden" name="invitation_id" value="<%= notification.related_id %>">
+                                        <button type="submit" class="ntf-btn-small ntf-btn-reject">
+                                            <i class="fas fa-times"></i>
+                                            <span>Rechazar</span>
+                                        </button>
+                                    </form>
+                                </div>
                             <% } %>
-                            <form action="/mark-notification-read" method="POST" class="inline-form">
-                                <input type="hidden" name="notification_id" value="<%= notification.id_notification %>">
-                                <button type="submit" class="btn-icon mark-read" title="Marcar como leída">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                            </form>
-                            <form action="/delete-notification" method="POST" class="inline-form">
-                                <input type="hidden" name="notification_id" value="<%= notification.id_notification %>">
-                                <button type="submit" class="btn-icon delete-notification" title="Eliminar notificación">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </form>
+                            
+                            <div class="ntf-notification-controls">
+                                <% if (!notification.is_read) { %>
+                                    <form action="/mark-notification-read" method="POST" class="ntf-inline-form">
+                                        <input type="hidden" name="notification_id" value="<%= notification.id_notification %>">
+                                        <button type="submit" class="ntf-btn-icon ntf-mark-read" title="Marcar como leída">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </form>
+                                <% } %>
+                                <form action="/delete-notification" method="POST" class="ntf-inline-form">
+                                    <input type="hidden" name="notification_id" value="<%= notification.id_notification %>">
+                                    <button type="submit" class="ntf-btn-icon ntf-delete-notification" title="Eliminar notificación">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 <% }); %>
             <% } else { %>
-                <div class="no-notifications">
-                    <p>No tienes notificaciones.</p>
+                <div class="ntf-no-notifications">
+                    <div class="ntf-no-notifications-icon">
+                        <i class="fas fa-bell-slash"></i>
+                    </div>
+                    <div class="ntf-no-notifications-text">
+                        <h3>No tienes notificaciones</h3>
+                        <p>Cuando recibas notificaciones, aparecerán aquí.</p>
+                    </div>
+                    <div class="ntf-no-notifications-actions">
+                        <a href="/matchfinder" class="ntf-btn ntf-btn-primary">
+                            <i class="fas fa-home"></i>
+                            <span>Ir al Dashboard</span>
+                        </a>
+                    </div>
                 </div>
             <% } %>
         </div>
     </div>
 </div>
 
-<style>
-/* Estilos para la página de notificaciones */
-.notification-filters {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.filter-btn {
-    padding: 8px 12px;
-    border-radius: 4px;
-    background-color: #2a2a2a;
-    color: #ccc;
-    border: none;
-    cursor: pointer;
-    text-align: left;
-    transition: background-color 0.2s ease;
-}
-
-.filter-btn:hover {
-    background-color: #3a3a3a;
-}
-
-.filter-btn.active {
-    background-color: #8a2be2;
-    color: white;
-}
-
-.notification-actions {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.action-btn {
-    padding: 10px;
-    border-radius: 4px;
-    background-color: #2a2a2a;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.action-btn:hover {
-    background-color: #3a3a3a;
-}
-
-.action-btn.danger {
-    background-color: rgba(255, 0, 0, 0.2);
-    color: #ff6b6b;
-}
-
-.action-btn.danger:hover {
-    background-color: rgba(255, 0, 0, 0.3);
-}
-
-.notifications-container {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.notification-card {
-    display: flex;
-    align-items: center;
-    background-color: #1a1a1a;
-    border-radius: 8px;
-    padding: 15px;
-    transition: background-color 0.2s ease;
-}
-
-.notification-card:hover {
-    background-color: #222;
-}
-
-.notification-card.unread {
-    border-left: 4px solid #8a2be2;
-    background-color: rgba(138, 43, 226, 0.1);
-}
-
-.notification-icon {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background-color: #2a2a2a;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 15px;
-    color: #8a2be2;
-    font-size: 1.2rem;
-}
-
-.notification-content {
-    flex-grow: 1;
-}
-
-.notification-message {
-    color: #fff;
-    margin-bottom: 5px;
-}
-
-.notification-date {
-    color: #888;
-    font-size: 0.8rem;
-}
-
-.notification-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.btn-small {
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 0.8rem;
-    border: none;
-    cursor: pointer;
-}
-
-.btn-accept {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.btn-accept:hover {
-    background-color: #45a049;
-}
-
-.btn-reject {
-    background-color: #f44336;
-    color: white;
-}
-
-.btn-reject:hover {
-    background-color: #d32f2f;
-}
-
-.btn-icon {
-    background: none;
-    border: none;
-    color: #888;
-    cursor: pointer;
-    font-size: 1rem;
-    padding: 5px;
-    transition: color 0.2s ease;
-}
-
-.btn-icon:hover {
-    color: #ccc;
-}
-
-.mark-read:hover {
-    color: #4CAF50;
-}
-
-.delete-notification:hover {
-    color: #f44336;
-}
-
-.no-notifications {
-    text-align: center;
-    padding: 40px;
-    background-color: #1a1a1a;
-    border-radius: 8px;
-    color: #aaa;
-}
-
-.inline-form {
-    display: inline;
-}
-
-/* Estilos para mensajes de alerta */
-.alert {
-    padding: 15px;
-    border-radius: 4px;
-    margin-bottom: 20px;
-}
-
-.alert-success {
-    background-color: rgba(0, 128, 0, 0.2);
-    border-left: 4px solid green;
-    color: #ccc;
-}
-
-.alert-error {
-    background-color: rgba(255, 0, 0, 0.2);
-    border-left: 4px solid red;
-    color: #ccc;
-}
-</style>
-
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Filtrado de notificaciones
-        const filterButtons = document.querySelectorAll('.filter-btn');
-        const notificationCards = document.querySelectorAll('.notification-card');
+document.addEventListener('DOMContentLoaded', function() {
+    // Elementos del DOM
+    const filterButtons = document.querySelectorAll('.ntf-filter-btn');
+    const notificationCards = document.querySelectorAll('.ntf-notification-card');
+    const markAllReadBtn = document.getElementById('markAllReadBtn');
+    const deleteAllBtn = document.getElementById('deleteAllBtn');
+    
+    // Función para actualizar contadores
+    function updateCounters() {
+        const totalNotifications = notificationCards.length;
+        const unreadNotifications = document.querySelectorAll('.ntf-notification-card.unread').length;
         
-        filterButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                // Remover clase active de todos los botones
-                filterButtons.forEach(btn => btn.classList.remove('active'));
-                
-                // Añadir clase active al botón clickeado
-                this.classList.add('active');
-                
-                // Obtener el filtro seleccionado
-                const filter = this.getAttribute('data-filter');
-                
-                // Mostrar/ocultar notificaciones según el filtro
-                notificationCards.forEach(card => {
-                    if (filter === 'all') {
-                        card.style.display = 'flex';
-                    } else if (filter === 'unread') {
-                        card.style.display = card.classList.contains('unread') ? 'flex' : 'none';
-                    } else {
-                        card.style.display = card.getAttribute('data-type') === filter ? 'flex' : 'none';
-                    }
-                });
-            });
+        // Actualizar contadores en sidebar
+        document.getElementById('count-all').textContent = totalNotifications;
+        document.getElementById('count-unread').textContent = unreadNotifications;
+        document.getElementById('total-notifications').textContent = totalNotifications;
+        document.getElementById('unread-notifications').textContent = unreadNotifications;
+        
+        // Actualizar contadores en header
+        document.getElementById('header-total').textContent = totalNotifications;
+        document.getElementById('header-unread').textContent = unreadNotifications;
+        
+        // Actualizar contadores por tipo
+        const types = ['team_invitation', 'tournament', 'match'];
+        types.forEach(type => {
+            const count = document.querySelectorAll(`[data-type="${type}"]`).length;
+            const countElement = document.getElementById(`count-${type}`);
+            if (countElement) {
+                countElement.textContent = count;
+            }
         });
-        
-        // Marcar todas como leídas
-        const markAllReadBtn = document.getElementById('markAllReadBtn');
-        if (markAllReadBtn) {
-            markAllReadBtn.addEventListener('click', function() {
-                if (confirm('¿Marcar todas las notificaciones como leídas?')) {
-                    window.location.href = '/mark-all-notifications-read';
-                }
-            });
-        }
-        
-        // Eliminar todas las notificaciones
-        const deleteAllBtn = document.getElementById('deleteAllBtn');
-        if (deleteAllBtn) {
-            deleteAllBtn.addEventListener('click', function() {
-                if (confirm('¿Estás seguro de que deseas eliminar todas las notificaciones?')) {
-                    window.location.href = '/delete-all-notifications';
-                }
-            });
-        }
+    }
+    
+    // Función para filtrar notificaciones
+    function filterNotifications(filter) {
+        notificationCards.forEach(card => {
+            let shouldShow = false;
+            
+            switch (filter) {
+                case 'all':
+                    shouldShow = true;
+                    break;
+                case 'unread':
+                    shouldShow = card.classList.contains('unread');
+                    break;
+                default:
+                    shouldShow = card.getAttribute('data-type') === filter;
+                    break;
+            }
+            
+            if (shouldShow) {
+                card.style.display = 'flex';
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.3s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 50);
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+    
+    // Event listeners para filtros
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remover clase active de todos los botones
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Añadir clase active al botón clickeado
+            this.classList.add('active');
+            
+            // Obtener el filtro seleccionado
+            const filter = this.getAttribute('data-filter');
+            
+            // Filtrar notificaciones
+            filterNotifications(filter);
+        });
     });
+    
+    // Marcar todas como leídas
+    if (markAllReadBtn) {
+        markAllReadBtn.addEventListener('click', function() {
+            const unreadCount = document.querySelectorAll('.ntf-notification-card.unread').length;
+            
+            if (unreadCount === 0) {
+                alert('No hay notificaciones sin leer.');
+                return;
+            }
+            
+            if (confirm(`¿Marcar ${unreadCount} notificaciones como leídas?`)) {
+                // Mostrar loading
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Marcando...';
+                this.disabled = true;
+                
+                window.location.href = '/mark-all-notifications-read';
+            }
+        });
+    }
+    
+    // Eliminar todas las notificaciones
+    if (deleteAllBtn) {
+        deleteAllBtn.addEventListener('click', function() {
+            const totalCount = notificationCards.length;
+            
+            if (totalCount === 0) {
+                alert('No hay notificaciones para eliminar.');
+                return;
+            }
+            
+            if (confirm(`¿Estás seguro de que deseas eliminar todas las ${totalCount} notificaciones? Esta acción no se puede deshacer.`)) {
+                // Mostrar loading
+                this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eliminando...';
+                this.disabled = true;
+                
+                window.location.href = '/delete-all-notifications';
+            }
+        });
+    }
+    
+    // Confirmación para acciones de invitación
+    const invitationForms = document.querySelectorAll('.ntf-invitation-actions form');
+    invitationForms.forEach(form => {
+        form.addEventListener('submit', function(e) {
+            const isReject = this.action.includes('reject');
+            const notificationCard = this.closest('.ntf-notification-card');
+            const message = notificationCard.querySelector('.ntf-notification-message').textContent.trim();
+            
+            if (isReject) {
+                const confirmed = confirm('¿Estás seguro de que quieres rechazar esta invitación?');
+                if (!confirmed) {
+                    e.preventDefault();
+                }
+            } else {
+                const confirmed = confirm('¿Estás seguro de que quieres aceptar esta invitación?');
+                if (!confirmed) {
+                    e.preventDefault();
+                }
+            }
+        });
+    });
+    
+    // Confirmación para eliminar notificación individual
+    const deleteButtons = document.querySelectorAll('.ntf-delete-notification');
+    deleteButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            const confirmed = confirm('¿Estás seguro de que quieres eliminar esta notificación?');
+            if (!confirmed) {
+                e.preventDefault();
+            }
+        });
+    });
+    
+    // Animaciones de entrada
+    notificationCards.forEach((card, index) => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.5s ease';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, index * 100);
+    });
+    
+    // Inicializar contadores
+    updateCounters();
+    
+    // Auto-refresh cada 30 segundos para notificaciones en tiempo real
+    setInterval(() => {
+        // Aquí podrías implementar una llamada AJAX para actualizar notificaciones
+        // sin recargar la página completa
+    }, 30000);
+});
 </script>
 
 <%- include('partials/footer') %>
